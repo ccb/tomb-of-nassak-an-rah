@@ -124,10 +124,11 @@
     <div class="screen">
       <svg id="road-m" viewBox="0 0 640 720" aria-label="The road to Gnomon (phone)"></svg>
     </div>
-    <p class="spec">The phone-legible twin of 00. Same beat &mdash; the wind-wagon rolling in,
-       moonset felling it, the roster rewriting itself &mdash; recomposed as a portrait: the
-       scene up top, then a big-type roster and proverb, so nothing shrinks past reading when
-       the 640 card is scaled to a phone column. Chosen at render time by width, not device.
+    <p class="spec">The phone-legible twin of 00. The desktop tableau is carried over whole
+       &mdash; every coordinate inside SC is 00's scene space at 1.4x, wagon, zoxen, fall
+       and all &mdash; with the type re-set outside: roster at 20px above the dune line,
+       stats under the rule, the proverb wrapped big. Only the fleeing teamster's path is
+       retuned (flatter south) so he clears the type.
        <span class="attach">Selected by terminal.js when the card would render under ~560px.</span></p>
   </section>
 
@@ -11745,118 +11746,123 @@
   }
 
   /* ---------------- 00-m: the road to Gnomon (phone twin) ----------------
-     The desktop card (00) rings the wagon with tiny type; scaled to a phone
-     column that type is unreadable. This twin re-lays the same beat as a tall
-     portrait: a bigger wagon up top, then a large-type roster and a wrapped
-     proverb. Authored ~2.5x the desktop px so it lands legible after the phone
-     downscale. terminal.js picks it by rendered width. */
+     Phone twin of 00. The tableau is carried over whole -- every coordinate
+     inside SC is 00's scene space at 1.4x: the same wagon, zoxen, roll-in,
+     and fall, verbatim -- and the type is re-set outside: 26px title, the
+     stat line split under the rule, the roster at 20px above the dune line,
+     the proverb wrapped big below. Only the fleeing teamster's path is
+     retuned (flatter south) so he clears the roster and the proverb. */
   {
     const svg = document.getElementById("road-m");
     el(svg, "rect", { x: 0, y: 0, width: 640, height: 720, fill: BG });
     el(svg, "line", { x1: 20, y1: 44, x2: 620, y2: 44, stroke: PH_DIM });
-    const hdr = label(svg, 20, 34, 30, PH_BRIGHT);
-    const kick = label(svg, 620, 34, 15, PH_DIM); kick.setAttribute("text-anchor", "end");
-    kick.textContent = "AN OPENING";
-    // the dune line + the horizon
-    el(svg, "polyline", { fill: "none", stroke: PH_DIM, points:
-      "0,300 120,292 260,306 400,290 540,304 640,296" });
-    el(svg, "line", { x1: 0, y1: 320, x2: 640, y2: 320, stroke: PH, "stroke-width": 1.8 });
-    el(svg, "line", { x1: 0, y1: 322, x2: 640, y2: 322, stroke: FUNGUS, opacity: .4 });
-    // THE WAGON, drawn big: bed, ribs, wheels, yoke, zoxen, driver
-    const gW = el(svg, "g", {});
-    const W = (name, attrs) => el(gW, name, attrs);
-    W("line", { x1: 120, y1: 288, x2: 300, y2: 288, stroke: PH, "stroke-width": 3 }); // bed
+    const hdr = label(svg, 20, 34, 26, PH_BRIGHT);
+    const sub1 = label(svg, 20, 70, 16, PH_DIM);
+    sub1.textContent = "PACE: DESPERATE / RATIONS: SPOKEN FOR";
+    const sub2 = label(svg, 20, 92, 16, PH_DIM);
+    sub2.textContent = "WEATHER: CACKLEMAW";
+    const SC = el(svg, "g", { transform: "translate(-257 60) scale(1.4)" });
+    // the dunes (extended past the desktop frame so they bleed both edges)
+    el(SC, "polyline", { fill: "none", stroke: PH_DIM, points:
+      "-20,238 0,236 90,228 180,240 300,226 420,238 540,228 640,236 660,234" });
+    el(SC, "line", { x1: -20, y1: 268, x2: 660, y2: 268, stroke: PH, "stroke-width": 1.4 });
+    el(SC, "line", { x1: -20, y1: 269, x2: 660, y2: 269, stroke: FUNGUS, opacity: .4 });
+    // THE WAGON, whole: hoops, bed, wheels, yoke, zoxen, driver -- verbatim
+    const gW = document.createElementNS(NS, "g"); SC.appendChild(gW);
+    const W = (name, attrs) => { const n = document.createElementNS(NS, name);
+      for (const k in attrs) n.setAttribute(k, attrs[k]); gW.appendChild(n); return n; };
+    W("line", { x1: 96, y1: 240, x2: 214, y2: 240, stroke: PH, "stroke-width": 2 }); // the bed
     for (let i = 0; i < 4; i++)                                          // the ribs
-      W("path", { d: `M ${138 + i * 44} 288 Q ${160 + i * 44} 218 ${182 + i * 44} 288`,
-        fill: "none", stroke: PH, "stroke-width": 2 });
+      W("path", { d: `M ${106 + i * 26} 240 Q ${119 + i * 26} 198 ${132 + i * 26} 240`,
+        fill: "none", stroke: PH, "stroke-width": 1.4 });
     W("polyline", { fill: "none", stroke: PH_DIM,
-      points: "150,250 200,222 260,220 300,250" });                     // the canvas line
-    const wheels = [[160, 300], [252, 300]].map(([x, y]) => {
-      W("circle", { cx: x, cy: y, r: 24, fill: "none", stroke: PH, "stroke-width": 2 });
+      points: "104,214 128,206 158,204 188,206 210,214" });              // the canvas line
+    const wheels = [[122, 254], [196, 254]].map(([x, y]) => {
+      W("circle", { cx: x, cy: y, r: 14, fill: "none", stroke: PH, "stroke-width": 1.6 });
       return { x, y, spokes: [0, 1, 2].map(() =>
-        W("line", { stroke: PH_DIM, "stroke-width": 1.6 })) };
+        W("line", { stroke: PH_DIM, "stroke-width": 1.2 })) };
     });
-    W("line", { x1: 300, y1: 292, x2: 344, y2: 300, stroke: PH, "stroke-width": 1.8 }); // yoke
+    W("line", { x1: 214, y1: 244, x2: 252, y2: 250, stroke: PH, "stroke-width": 1.4 }); // yoke
     // the zoxen, plodding
-    const zox = [[350, 288], [402, 290]].map(([x, y]) => ({
+    const zox = [[258, 238], [292, 240]].map(([x, y]) => ({
       x, y,
-      body: W("ellipse", { cx: x + 18, cy: y, rx: 22, ry: 13, fill: "none",
-        stroke: PH, "stroke-width": 2 }),
-      head: W("polyline", { fill: "none", stroke: PH, "stroke-width": 1.8,
-        points: `${x + 38},${y - 6} ${x + 52},${y} ${x + 49},${y + 9}` }),
-      legs: W("polyline", { fill: "none", stroke: PH, "stroke-width": 1.8 }),
+      body: W("ellipse", { cx: x + 12, cy: y, rx: 16, ry: 9, fill: "none",
+        stroke: PH, "stroke-width": 1.5 }),
+      head: W("polyline", { fill: "none", stroke: PH, "stroke-width": 1.4,
+        points: `${x + 26},${y - 4} ${x + 36},${y} ${x + 34},${y + 6}` }),
+      legs: W("polyline", { fill: "none", stroke: PH, "stroke-width": 1.4 }),
     }));
     const driver = W("g", {});
-    const dv = (name, attrs) => el(driver, name, attrs);
-    dv("circle", { cx: 292, cy: 262, r: 5, fill: PH_BRIGHT });
-    dv("polyline", { fill: "none", stroke: PH_BRIGHT, "stroke-width": 1.8,
-      points: "292,268 292,282 284,288" });
-    // the roster, big type
-    const R = [
-      { y: 392, a: "MERCHANT .... WITH THE WAGON", b: "MERCHANT .... LOST (MOONSET)" },
-      { y: 428, a: "ZOXEN x2 .... PULLING",        b: "ZOXEN x2 .... LOST" },
-      { y: 464, a: "TEAMSTER .... DRIVING",        b: "TEAMSTER .... FLED SOUTH" },
-      { y: 500, a: "YOU ......... NOT YET HERE",   b: "YOU ......... INCOMING" },
-    ].map(r => ({ ...r, n: label(svg, 40, r.y, 23, PH) }));
-    // the teamster, fleeing south
-    const flee = el(svg, "g", { opacity: 0 });
-    el(flee, "circle", { cx: 0, cy: -18, r: 5, fill: PH_BRIGHT });
-    el(flee, "line", { x1: 0, y1: -13, x2: 0, y2: 4, stroke: PH_BRIGHT, "stroke-width": 2 });
+    const dv = (name, attrs) => { const n = document.createElementNS(NS, name);
+      for (const k in attrs) n.setAttribute(k, attrs[k]); driver.appendChild(n); return n; };
+    dv("circle", { cx: 208, cy: 222, r: 3.4, fill: PH_BRIGHT });
+    dv("polyline", { fill: "none", stroke: PH_BRIGHT, "stroke-width": 1.3,
+      points: "208,226 208,236 202,240" });
+    // the teamster, fleeing: a little walking figure, not an ambiguous dot
+    const flee = el(SC, "g", { opacity: 0 });
+    el(flee, "circle", { cx: 0, cy: -12, r: 3, fill: PH_BRIGHT });
+    el(flee, "line", { x1: 0, y1: -9, x2: 0, y2: 2, stroke: PH_BRIGHT,
+      "stroke-width": 1.4 });
     const fleeLegs = el(flee, "polyline", { fill: "none", stroke: PH_BRIGHT,
-      "stroke-width": 1.8 });
-    // the proverb, wrapped, big
-    const F1 = label(svg, 320, 588, 24, FUNGUS); F1.setAttribute("text-anchor", "middle");
-    const F2 = label(svg, 320, 624, 24, FUNGUS); F2.setAttribute("text-anchor", "middle");
-    const F3 = label(svg, 320, 662, 24, PH_BRIGHT); F3.setAttribute("text-anchor", "middle");
-    const doWipe = wipe(svg, 640, 720, 2, 10);
+      "stroke-width": 1.3 });
+    // the roster, re-set big above the dune line
+    const R = [
+      { y: 128, a: "MERCHANT ......... WITH THE WAGON", b: "MERCHANT ......... LOST (MOONSET)" },
+      { y: 160, a: "ZOXEN x2 ......... PULLING",        b: "ZOXEN x2 ......... LOST" },
+      { y: 192, a: "TEAMSTER ......... DRIVING",        b: "TEAMSTER ......... FLED SOUTH" },
+      { y: 224, a: "YOU .............. NOT YET HERE",   b: "YOU .............. INCOMING" },
+    ].map(r => ({ ...r, n: label(svg, 40, r.y, 20, PH) }));
+    // the proverb, wrapped big
+    const F1 = label(svg, 320, 648, 22, FUNGUS); F1.setAttribute("text-anchor", "middle");
+    const F2 = label(svg, 320, 680, 22, FUNGUS); F2.setAttribute("text-anchor", "middle");
+    const doWipe = wipe(svg, 640, 720, 2, 12);
     clock(t => {
       const T = Math.min(t, 259); // a title card: plays once, holds the tableau
       doWipe(T);
-      typeOn(hdr, "ROAD TO GNOMON", T, 4, 1.2);
+      typeOn(hdr, "ROAD TO GNOMON", T, 4, 1.4);
       const fallen = T >= 130;
-      const dx = fallen ? 0 : -150 + Math.min(T, 96) * 1.5625; // rolls in, arrives ~T=96
+      const wx = fallen ? 200 : Math.floor(T * 1.6);
       gW.setAttribute("transform",
-        `translate(${dx} 0)` + (fallen ? " rotate(-10 206 300)" : ""));
+        `translate(${wx} 0)` + (fallen ? " rotate(-11 200 254)" : ""));
       wheels.forEach(w => w.spokes.forEach((sp, i) => {
         const a = (fallen ? 0 : t * .5) + i * Math.PI / 3;
-        sp.setAttribute("x1", w.x - Math.cos(a) * 22); sp.setAttribute("y1", w.y - Math.sin(a) * 22);
-        sp.setAttribute("x2", w.x + Math.cos(a) * 22); sp.setAttribute("y2", w.y + Math.sin(a) * 22);
+        sp.setAttribute("x1", w.x - Math.cos(a) * 12); sp.setAttribute("y1", w.y - Math.sin(a) * 12);
+        sp.setAttribute("x2", w.x + Math.cos(a) * 12); sp.setAttribute("y2", w.y + Math.sin(a) * 12);
       }));
       zox.forEach((z, i) => {
         if (!fallen) {
-          const st = ((t + i * 2) % 4 < 2) ? 6 : -6;
+          const st = ((t + i * 2) % 4 < 2) ? 4 : -4;
           z.legs.setAttribute("points",
-            `${z.x + 2 + st},322 ${z.x + 6},300 ${z.x + 16},300 ${z.x + 16 - st},322 ` +
-            `${z.x + 28 + st},322 ${z.x + 28},300 ${z.x + 38},300 ${z.x + 38 - st},322`);
+            `${z.x + 2 + st},268 ${z.x + 4},248 ${z.x + 10},248 ${z.x + 10 - st},268 ` +
+            `${z.x + 18 + st},268 ${z.x + 18},248 ${z.x + 24},248 ${z.x + 24 - st},268`);
           z.body.setAttribute("transform", ""); z.head.setAttribute("transform", "");
           z.head.setAttribute("opacity", 1);
         } else {                                    // arranged by the wind, as if asleep
           z.legs.setAttribute("points",
-            `${z.x - 2},314 ${z.x + 12},318 ${z.x + 26},314 ${z.x + 40},318`);
-          const down = `translate(0 20) rotate(8 ${z.x + 18} ${z.y})`;
+            `${z.x - 2},262 ${z.x + 8},264 ${z.x + 18},262 ${z.x + 28},264`);
+          const down = `translate(0 14) rotate(8 ${z.x + 12} ${z.y})`;
           z.body.setAttribute("transform", down);
           z.head.setAttribute("transform", down);
           z.head.setAttribute("opacity", .4);
         }
       });
-      // gone from the bench at moonset -- REMOVED, not just faded (Safari
-      // leaves stale paint behind attribute-only hides)
+      // gone from the bench at moonset -- REMOVED, not just faded: some
+      // renderers (Safari) leave stale paint behind attribute-only hides
       if (fallen && driver.isConnected) driver.remove();
       driver.setAttribute("opacity", fallen ? 0 : 1);
-      if (fallen && T < 176) {                      // the teamster, fleeing south
+      if (fallen && T < 170) {                      // the teamster, fleeing south
         flee.setAttribute("opacity", 1);
-        flee.setAttribute("transform",
-          `translate(${470 + (T - 130) * 4} ${338 + (T - 130) * 1.6})`);
-        const st = (t % 4 < 2) ? 6 : -6;
-        fleeLegs.setAttribute("points", `${-st},16 0,4 ${st},16`);
-      } else if (flee.isConnected && T >= 176) flee.remove();
+        flee.setAttribute("transform",              // flatter than 00's dive:
+          `translate(${420 + (T - 130) * 3.4} ${292 + (T - 130) * 1.0})`);
+        const st = (t % 4 < 2) ? 4 : -4;
+        fleeLegs.setAttribute("points", `${-st},10 0,2 ${st},10`);
+      } else if (flee.isConnected && T >= 170) flee.remove();
       R.forEach((r, i) => {
-        if (!fallen) typeOn(r.n, r.a, T, 16 + i * 12, 1.6);
+        if (!fallen) typeOn(r.n, r.a, T, 16 + i * 14, 1.6);
         else { r.n.textContent = r.b; r.n.setAttribute("fill", i === 3 ? PH_BRIGHT : PH_DIM); }
       });
       typeOn(F1, "THE ROAD TO GNOMON IS WALKED", T, 176, 1.6);
-      typeOn(F2, "ONLY BY THE DESPERATE.", T, 196, 1.6);
-      typeOn(F3, "PROVEN AGAIN.", T, 212, 1.6);
+      typeOn(F2, "ONLY BY THE DESPERATE. PROVEN AGAIN.", T, 196, 1.6);
     });
   }
 
