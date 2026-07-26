@@ -700,6 +700,9 @@ class Burn(actions.Action):
             self.game.locations["Burial Sphere of Nassak An-Rah"].set_property(
                 "horror_dead", True
             )
+            # the flame runs the network: the chimney's growth dies with it,
+            # and its spores with the growth
+            _chimney_network_dead(self.game)
             message = (
                 "You splash a dose of embalming gel over the ossified mystic "
                 f"and put a spark from the {_spark_name(self.player)} to it. Orange "
@@ -2113,9 +2116,10 @@ def _chimney_burned_out(g):
                 "The shaft is dark and quiet, rimmed faintly from below by "
                 "the glow of carved prayers. Char, and cool air."
             )
-    growth = chimney.items.get("orange growth")
-    if growth is not None:
-        chimney.remove_item(growth)
+    for nm in ("orange growth", "dead growth"):  # either living or network-dead
+        growth = chimney.items.get(nm)
+        if growth is not None:
+            chimney.remove_item(growth)
     if "charred growth" not in chimney.items:
         stub = _scenery(
             chimney,
@@ -2130,6 +2134,54 @@ def _chimney_burned_out(g):
         stub.perceptible_by(
             perception.Sense.TASTE,
             "Char. It tastes of a fire that has finished its work.",
+        )
+
+
+def _chimney_network_dead(g):
+    """The network died somewhere ELSE -- the mystic cleansed, or the Horror
+    burned -- and the shaft's growth died with it (cards 20-G/20-H: charred
+    brown, nearly still, ash motes for spores). Unlike a local burn the
+    tendrils still PACK the shaft, but nothing in them spores: the air is
+    harmless now. A locally burned shaft already reads as scoured; keep it."""
+    chimney = g.locations["The Fungal Chimney"]
+    if chimney.get_property("burned"):
+        return
+    chimney.description = (
+        "A vertical throat packed with dead growth, dropping from the summit "
+        "toward a glow of carved prayers far below. The tendrils have gone "
+        "charred brown and still; ash motes drift where the spores used to "
+        "swirl. The air is only air now."
+    )
+    chimney.dim_description = (
+        "A vertical throat packed with dead growth, charred brown and still. "
+        "Ash drifts on a cool draught; the air is harmless now."
+    )
+    for veil in chimney.veils:
+        if isinstance(veil, perception.Gloom):
+            veil._blurb = (
+                "The shaft is dark and still -- the bloom's glow is out -- "
+                "rimmed faintly from below by the carved prayers. Ash rides "
+                "a cool draught."
+            )
+    growth = chimney.items.get("orange growth")
+    if growth is not None:
+        chimney.remove_item(growth)
+    if "dead growth" not in chimney.items:
+        husk = _scenery(
+            chimney,
+            "dead growth",
+            "the dead growth packing the shaft",
+            "The growth still packs the chimney from throat to crown, but "
+            "dead: charred brown, cool, crumbling at a touch. Nothing in it "
+            "moves, and nothing in it spores.",
+        )
+        husk.add_alias("growth")
+        husk.add_alias("fungus")
+        husk.add_alias("tendrils")
+        husk.perceptible_by(
+            perception.Sense.TASTE,
+            "Char and old rot. Whatever this fungus wanted with a body, it "
+            "has stopped wanting.",
         )
 
 
@@ -3779,8 +3831,9 @@ def build_game(seed=None):
             ],
             available=lambda g: chimney.has_been_visited
             or bool(warriors.get_property("spores_vented")),
-            resolved=lambda g: bool(chimney.get_property("burned"))
-            or "respirator" in game.player.worn,
+            # any death of the network resolves it: local burn, the mystic
+            # cleansed, or the Horror burned
+            resolved=lambda g: _growth_dead() or "respirator" in game.player.worn,
         ),
         Hint(
             "coffin",
@@ -5134,12 +5187,14 @@ def build_game(seed=None):
 
     # No grace rounds and no credit for a mask in your HAND (CCB): the air
     # itself is the hazard, so every round unmasked in the throat is a wound
-    # -- WEAR the respirator, or burn the growth out, or don't linger.
+    # -- WEAR the respirator, or burn the growth out, or don't linger. Dead
+    # growth spores nothing: the hazard lifts however the network dies --
+    # the shaft burned locally, the mystic cleansed, or the Horror burned.
     _hazard(
         game,
         chimney,
         danger=lambda g: "respirator" not in g.player.worn,
-        gate=lambda g: not chimney.get_property("burned"),
+        gate=lambda g: not _growth_dead(),
         limit=1,
         warns=(),  # unreachable at limit=1: the first breath IS the harm
         harm=_spore_sear,
@@ -5429,6 +5484,9 @@ def build_game(seed=None):
                 sphere.add_item(it)
                 released.append(it.name)
         sphere.set_property("horror_dead", True)
+        # The root is the network: the chimney's growth dies with the Horror,
+        # and its spores with the growth.
+        _chimney_network_dead(g)
         # Every death here is a burning one (steel alone is a treadmill): the
         # remains are ASH, an object in the room, not a listed combatant --
         # and the room itself becomes the fight's record (CCB).

@@ -937,6 +937,48 @@ def test_the_chimney_is_passable_but_the_spores_scar_your_lungs():
     assert not game.is_game_over()
 
 
+def test_dead_network_means_dead_spores_in_the_chimney():
+    """Killing the fungal network anywhere kills the chimney's spores (CCB):
+    once the mystic is cleansed -- or the Horror burned -- an unmasked walk
+    through the throat costs nothing, and the shaft reads as dead growth,
+    not living bloom."""
+    game = _game()
+    _embark(game)
+    game.characters["glass centipede"].set_property("is_unconscious", True)
+    # the network dies at the summit (the same properties the cleanse and the
+    # Horror's burning set; both feed _growth_dead)
+    game.locations["The Summit"].set_property("cleansed", True)
+    game.locations["Burial Sphere of Nassak An-Rah"].set_property(
+        "horror_dead", True
+    )
+    game.do_command("up")
+    game.do_command("in")  # into the throat, no mask, no fear
+    assert game.player.location.name == "The Fungal Chimney"
+    game.do_command("look")  # linger: still nothing
+    assert not any(w.name == "Seared Lungs" for w in game.player.wounds)
+    assert not game.is_game_over()
+
+
+def test_the_cleanse_kills_the_chimney_spores_end_to_end():
+    """The full route: burn the ossified mystic and the chimney's growth dies
+    with the network -- the shaft re-reads as dead growth and an unmasked
+    descent is harmless."""
+    game = _game()
+    _embark(game)
+    game.characters["glass centipede"].set_property("is_unconscious", True)
+    gel = game.locations["Hall of Hounds"].items["flask of gel"]
+    game.locations["Hall of Hounds"].remove_item(gel)
+    game.player.add_to_inventory(gel)
+    _hand(game, "Hall of Warriors", "orange cylinder", "plasma-igniter")
+    game.relocate(game.player, game.locations["The Summit"])
+    game.do_command("burn corpse")
+    assert game.locations["The Summit"].get_property("cleansed")
+    game.do_command("in")  # unmasked, straight into the throat
+    assert game.player.location.name == "The Fungal Chimney"
+    assert not any(w.name == "Seared Lungs" for w in game.player.wounds)
+    assert "dead growth" in game.player.location.items  # reads as aftermath
+
+
 def test_a_held_respirator_does_not_seal_lungs():
     """The mask works WORN, not carried (CCB: 'if I am not wearing a
     respirator') -- and worn, it holds for as long as you care to linger."""
