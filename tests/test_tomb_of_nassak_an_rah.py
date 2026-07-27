@@ -2531,6 +2531,128 @@ def test_the_lantern_shows_why_prying_the_box_cannot_work():
     assert "tesseract-u" in cap.texts(Channel.FIGURE)
 
 
+def _fetch(game, name):
+    """Find *name* anywhere -- room, nested container -- and hand it over."""
+
+    def walk(container):
+        pool = getattr(container, "items", None)
+        if pool is None:
+            pool = getattr(container, "contents", {})
+        for it in list(pool.values()):
+            if it.name == name:
+                container.remove_item(it)
+                game.player.add_to_inventory(it)
+                return it
+            got = walk(it)
+            if got is not None:
+                return got
+        return None
+
+    for loc in game.locations.values():
+        got = walk(loc)
+        if got is not None:
+            return got
+    raise AssertionError(f"no {name} anywhere")
+
+
+def test_fire_is_honest_about_trade_goods():
+    """BURN <flammable> wants a spark (igniter or servo) and consumes the
+    thing -- the saffron burns like a treasury, and it is gone."""
+    game = _game()
+    _saffron_in_hand(game)
+    cap = _texts(game)
+    game.do_command("burn saffron")
+    assert any("spark" in t for t in cap.texts(Channel.BLOCKED))
+    _hand(game, "Hall of Warriors", "orange cylinder", "plasma-igniter")
+    game.do_command("burn saffron")
+    assert "bale of saffron" not in game.player.inventory
+
+
+def test_fire_refuses_what_will_not_burn():
+    """The authored refusals: memory does not burn, and the refusal costs
+    nothing."""
+    game = _game()
+    _hand(game, "Hall of Warriors", "orange cylinder", "plasma-igniter")
+    game.relocate(game.player, game.locations["Hall of Memory"])
+    game.do_command("break lattice")
+    game.do_command("take shard")
+    cap = _texts(game)
+    game.do_command("burn shard")
+    assert any("Memory does not burn" in t for t in cap.texts(Channel.BLOCKED))
+    assert "memory shard" in game.player.inventory
+
+
+def test_sealed_jars_protect_their_organs_from_fire():
+    """An organ burns only once it is OUT of its jar -- sealed glaze
+    protects, the same rule the scent system keeps."""
+    game = _game()
+    _hand(game, "Hall of Warriors", "orange cylinder", "plasma-igniter")
+    jar = _fetch(game, "baboon jar")
+    cap = _texts(game)
+    game.do_command("burn lungs")  # sealed: the fire never finds them
+    assert any("nothing here that wants burning" in t for t in cap.texts(Channel.BLOCKED))
+    assert "lungs" in jar.contents
+    game.do_command("open baboon jar")
+    game.do_command("burn lungs")  # exposed: four thousand years of held breath
+    assert "lungs" not in jar.contents
+    assert "lungs" not in game.player.inventory
+
+
+def test_fire_opens_the_orange_cylinder_safely():
+    """Fire kills fungus: BURN ORANGE CYLINDER incinerates the bloom before
+    it can vent -- no Seared Lungs, no mask needed -- and the kit survives."""
+    game = _game()
+    _fetch(game, "sparking servo")  # the hound's heart makes the spark
+    warriors = game.locations["Hall of Warriors"]
+    game.relocate(game.player, warriors)
+    game.do_command("burn orange cylinder")
+    assert warriors.get_property("spores_vented")
+    assert not any(w.name == "Seared Lungs" for w in game.player.wounds)
+    assert "orange cylinder" not in warriors.items
+    assert "plasma-igniter" in warriors.items  # the kit settles into the scorch
+
+
+def test_fire_bursts_the_tank_and_the_flood_still_plays():
+    """BURN TANK is the alternate opening: the seam gives to fire and the
+    same flood beat (51) and wreckage state follow."""
+    game = _game()
+    cap = _texts(game)
+    _fetch(game, "sparking servo")
+    hounds = game.locations["Hall of Hounds"]
+    game.relocate(game.player, hounds)
+    game.do_command("burn tank")
+    game.do_command("look")  # a round for the burst trigger
+    assert hounds.get_property("tank_burst")
+    assert "flood" in cap.texts(Channel.FIGURE)
+
+
+def test_burning_the_archivists_robes_is_an_audition():
+    """Silas pinches the flame out -- and the wrath that follows is the
+    lattice-smasher's wrath: patient, walking, permanent."""
+    game = _game()
+    _hand(game, "Hall of Warriors", "orange cylinder", "plasma-igniter")
+    silas = game.characters["Silas"]
+    game.relocate(game.player, silas.location)
+    game.do_command("burn robes")
+    assert silas.get_property("wrathful")
+
+
+def test_a_molotov_splash_burns_the_loot():
+    """A molotov bursting in a room ignites the flammables lying there --
+    thrown fire is indiscriminate about cargo."""
+    game = _game()
+    _armed_with_molotov_fixings(game)
+    _saffron_in_hand(game)
+    game.do_command("drop bale of saffron")
+    game.do_command("make molotov")
+    game.do_command("drop molotov")   # fuse ticks on the floor now
+    game.do_command("wait")
+    game.do_command("wait")
+    loc = game.player.location
+    assert "bale of saffron" not in loc.items
+    assert "molotov cocktail" not in loc.items
+
+
 def test_butchering_the_zoxen_wants_a_blade_and_yields_two_cuts():
     """CCB: the zoxen earn their keep -- BUTCHER with a blade in hand gives
     edible trail meat, twice, and then the sand has the rest."""

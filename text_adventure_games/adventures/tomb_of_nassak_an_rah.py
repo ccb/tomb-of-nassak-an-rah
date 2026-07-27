@@ -539,6 +539,22 @@ def _spark_name(player):
     return "spark"
 
 
+def _burn_flammable(g, item, holder):
+    """Fire meets a `flammable` item: print its burn_text and consume it.
+    *holder* is whoever has it -- a character or a location. Fire is honest:
+    gone is gone."""
+    txt = item.get_property("burn_text") or (
+        f"The {item.name} burns, and is gone."
+    )
+    if hasattr(holder, "discard_item"):
+        holder.discard_item(item)
+    elif hasattr(holder, "remove_from_inventory"):
+        holder.remove_from_inventory(item)
+    else:
+        holder.remove_item(item)
+    g.parser.ok(txt)
+
+
 def _gel_dose(g):
     """Consume one dose of gel from the player's flask (relabelling it);
     returns False if they carry no dose."""
@@ -598,6 +614,58 @@ class Burn(actions.Action):
         super().__init__(game, actor=actor)
         self.player = self.game.player
         self.command = command.lower()
+        self._gen = None  # a generic flammable/special, resolved in preconditions
+
+    def _generic(self):
+        """The named burnable thing beyond the big three: (kind, obj) or
+        None. Kinds: 'robes' (Silas, present), 'tank'/'cylinder' (fire as an
+        alternate opening), 'refuse' (authored refusals), 'flam' (anything
+        flagged flammable, carried or lying here)."""
+        loc = self.player.location
+        if "robe" in self.command or "silas" in self.command:
+            silas = self.game.characters.get("Silas")
+            if silas is not None and silas.location is loc:
+                if silas.get_property("is_dead"):
+                    return ("refuse_text", "The archivist is past minding. "
+                            "Let the dead keep their robes.")
+                return ("robes", silas)
+        pool = dict(self.player.carried_items())
+        if loc is not None:
+            for n, it in loc.items.items():
+                pool.setdefault(n, it)
+        it = self.parser.match_item(self.command, pool, hint="thing to burn")
+        if it is None:
+            return None
+        if it.get_property("burn_refusal"):
+            return ("refuse_text", it.get_property("burn_refusal"))
+        if it.name == "tank" and loc is not None and "tank" in loc.items:
+            return ("tank", it)
+        if it.name.endswith("cylinder") and loc is not None and it.name in loc.items:
+            return ("cylinder", it)
+        if it.get_property("flammable"):
+            holder = self._holder_of(it)
+            if holder is None:
+                return None  # sealed away: the fire never finds it
+            return ("flam", (it, holder))
+        return None
+
+    def _holder_of(self, it):
+        """Who actually exposes *it* to the flame: the player's own hands, an
+        OPEN container (carried or here), or the room floor. Sealed glaze
+        protects -- an organ in its closed jar returns None."""
+        inv = self.player.inventory
+        if it.name in inv:
+            return self.player
+        loc = self.player.location
+        if loc is not None and it.name in loc.items:
+            return loc
+        containers = list(inv.values()) + (
+            list(loc.items.values()) if loc is not None else []
+        )
+        for c in containers:
+            if getattr(c, "contents", None) and it.name in c.contents:
+                return None if c.get_property("is_closed") else c
+        return None
 
     def _target(self):
         loc = self.player.location
@@ -643,6 +711,64 @@ class Burn(actions.Action):
             and not horror.get_property("is_dead")
         )
 
+    def _apply_generic(self):
+        g = self.game
+        kind, obj = self._gen
+        loc = self.player.location
+        if kind == "flam":
+            it, holder = obj
+            _burn_flammable(g, it, holder)
+            return
+        if kind == "robes":
+            silas = obj
+            silas.set_property("wrathful", True)
+            self.parser.ok(
+                "You put flame to the hem of the yellow robes. It blackens, "
+                "catches -- and Silas pinches it out between two fingers, "
+                "unhurried, without looking away from you. 'I catalogue "
+                "endings,' he says. 'Do not audition.'"
+            )
+            return
+        if kind == "tank":
+            # fire as the alternate opening: remove the tank and the flood
+            # trigger does the rest (the burst state, the wreckage, card 51)
+            loc.remove_item(obj)
+            self.parser.ok(
+                "You lay the flame against the tank's seam and the gel takes "
+                "it from you: a sheet of quiet fire maps the glass in one "
+                "breath, the seam sings -- and lets go all at once. A tide "
+                "of burning honey rolls wall to wall and puts itself out as "
+                "it spreads, the gel remembering that its first job is "
+                "keeping."
+            )
+            return
+        if kind == "cylinder":
+            cyl = obj
+            colour = cyl.name.split()[0]
+            if colour == "orange":
+                # fire kills fungus: the bloom burns before it can vent --
+                # claiming spores_vented FIRST keeps the sear trigger quiet
+                loc.set_property("spores_vented", True)
+                self.parser.ok(
+                    "You put flame to the crack of the orange cylinder and "
+                    "the fire is through it before the bloom can exhale: the "
+                    "spores go up in one soft orange sheet, ash before they "
+                    "fly. The gel burns off low and blue, and the guard's "
+                    "kit settles into the scorch."
+                )
+            else:
+                self.parser.ok(
+                    f"You lay flame along the {colour} cylinder's seam. The "
+                    "gel inside takes it, the glass crazes and falls away in "
+                    "hot panes, and the guard settles into a low blue "
+                    "burn-off. Its kit survives. Kit does."
+                )
+            for it in list(cyl.contents.values()):
+                cyl.remove_item(it)
+                loc.add_item(it)
+            loc.remove_item(cyl)
+            return
+
     def check_preconditions(self) -> bool:
         if "gel" in self.command.split() or "flask" in self.command.split():
             # Once the dose is ON something, lighting "the gel" IS lighting
@@ -655,6 +781,20 @@ class Burn(actions.Action):
                 return False
         target = self._target()
         if target is None:
+            gen = self._generic()
+            if gen is not None:
+                kind, obj = gen
+                if kind == "refuse_text":
+                    self.parser.fail(obj)
+                    return False
+                if not _has_spark(self.player):
+                    self.parser.fail(
+                        "Nothing in your hands makes a flame. It would want "
+                        "a spark -- the igniter, or the hound's servo."
+                    )
+                    return False
+                self._gen = gen
+                return True  # small fires want a spark, not a dose
             self.parser.fail("There's nothing here that wants burning.")
             return False
         if target == "corpse" and self.player.location.get_property("cleansed"):
@@ -689,6 +829,8 @@ class Burn(actions.Action):
         return True
 
     def apply_effects(self):
+        if self._gen is not None:
+            return self._apply_generic()
         target = self._target()
         if not (
             target == "horror"
@@ -1821,6 +1963,14 @@ class Butcher(actions.Action):
         meat.set_property("raw haunch", True)
         meat.add_command_hint("roast haunch")
         meat.add_command_hint("season haunch")
+        # ...and BURN is not ROAST (CCB): fire without patience ruins it
+        meat.set_property("flammable", True)
+        meat.set_property(
+            "burn_text",
+            "The meat spits and blackens, salt snapping in the flame like "
+            "distant applause. Somewhere between roast and regret, it stops "
+            "being food.",
+        )
         self.player.location.add_item(meat)
         if cut == 1:
             # The first cut catches the blood too (CCB): zoxen are half
@@ -1841,6 +1991,10 @@ class Butcher(actions.Action):
                 "In Vaarn, this counts as a drink.",
             )
             blood.add_alias("blood")
+            blood.set_property(
+                "burn_refusal",
+                "It was never going to burn. It is the better half of a zox.",
+            )
             self.player.location.add_item(blood)
         self.parser.ok(
             "You open the nearer zox along the flank the sand hasn't "
@@ -2397,6 +2551,9 @@ def build_game(seed=None):
         "the heeled-over wind-wagon",
         "Pale ribs and torn sailcloth. Wind-wagons are built to outrun "
         "anything on the Tomblands road, and this one nearly did.",
+    ).set_property(
+        "burn_refusal",
+        "You have burned enough of your livelihood this week.",
     )
     _scenery(
         wreck,
@@ -2405,6 +2562,11 @@ def build_game(seed=None):
         "The caravan's draught-zoxen, patient in death as in life, already "
         "sanded to the shoulder. By morning the road will have them wholly.",
     ).set_property("figure", "zoxen")  # the memorial litho, on examine
+    wreck.items["zoxen"].set_property(
+        "burn_refusal",
+        "The road will have them; the fire doesn't need them. And you may "
+        "yet want dinner.",
+    )
     # The merchant himself -- Worry's "the merchant could not". Searching (or
     # examining) him is the wreck's safe rehearsal of the corpse-searching habit
     # that pays off at the Summit.
@@ -2483,6 +2645,7 @@ def build_game(seed=None):
         _good.set_property("gettable", True)
         _good.set_property("slots", _slots)
         _good.add_alias(_name.split()[0])  # bale / crate / bolt
+        _good.set_property("flammable", True)  # trade goods burn; see below
         if "dates" in _name:
             _good.set_property(Property.EDIBLE, True)
             _good.set_property(
@@ -2491,11 +2654,32 @@ def build_game(seed=None):
                 "and anything in these halls with a nose will know you "
                 "carry it.",
             )
+            _good.set_property(
+                "burn_text",
+                "The dates burn slow and sweet, syrup hissing from the "
+                "split skins. It smells like every festival the road ever "
+                "cancelled.",
+            )
         if "saffron" in _name:
             _good.set_property(
                 Property.TASTE,
                 "of bitter gold. A spice worth more than the wagon that "
                 "hauled it -- seasoning, not supper.",
+            )
+            _good.set_property(
+                "burn_text",
+                "The bale goes up in a crimson thread of smoke that smells "
+                "like a treasury burning. For one breath the hall is "
+                "perfumed like the Autarchy at its height. Then it is ash, "
+                "with a fortune's memory.",
+            )
+        if "silk" in _name:
+            _good.set_property(
+                "burn_text",
+                "One touch and the bolt is a ribbon of white light, end to "
+                "end. Silk burns like it's in a hurry -- no smoke, no ash "
+                "worth the name, just your hands remembering how cool it "
+                "was.",
             )
         _good.add_alias(_name.split()[-1].strip())  # saffron / dates / spider-silk
         if "silk" in _name:
@@ -2533,6 +2717,12 @@ def build_game(seed=None):
         "entry is the last.",
     )
     ledger.set_property("gettable", True)  # take it along; it reads anywhere
+    ledger.set_property("flammable", True)
+    ledger.set_property(
+        "burn_text",
+        "The caravan's whole arithmetic -- names, weights, worths -- goes "
+        "up letter by letter. The stamp burns last, still insisting.",
+    )
     ledger.set_property("figure", "manifest")  # the stamped page (49): READ
     # and EXAMINE both deal it -- paperwork earns its card by being consulted
     ledger.add_command_hint("read ledger")
@@ -2545,6 +2735,10 @@ def build_game(seed=None):
         "a waterskin with 3 rations",
         "Three rations of the merchant's water survived the night. In Vaarn "
         "this is called an inheritance. Each swallow mends what it can.",
+    )
+    waterskin.set_property(
+        "burn_refusal",
+        "It was never going to burn. It is water; in Vaarn that outranks fire.",
     )
     # Water is Vaarn's scarcest resource -- of course you can drink it. Three
     # rations (CCB design): each drink heals a wound and takes a ration; the
@@ -2894,6 +3088,11 @@ def build_game(seed=None):
         "A splinter of lazulite, warm-edged where it broke.",
     )
     memory_shard.add_alias("shard")
+    memory_shard.set_property(
+        "burn_refusal",
+        "Memory does not burn. The facet goes warm in the flame and keeps "
+        "exactly what it kept.",
+    )
     tank = _scenery(
         hounds,
         "tank",
@@ -3240,6 +3439,12 @@ def build_game(seed=None):
     fungus.set_property("figure", "fungus")
     fungus.set_property("gettable", True)
     fungus.set_property(Property.EDIBLE, True)
+    fungus.set_property("flammable", True)
+    fungus.set_property(
+        "burn_text",
+        "The pouch flares pink. The smoke is sweet, convivial, and briefly "
+        "very interested in you. Somewhere, a friendship ends.",
+    )
     # A LICK is a microdose (CCB): the taste rehearses the fungus's whole
     # function -- and points, gently, at giving it away rather than eating it.
     fungus.perceptible_by(
@@ -3290,6 +3495,29 @@ def build_game(seed=None):
         "beat, a thought that is not yours: blue sand, and a mother's "
         "voice. Swallowing more would be somebody's biography.",
     )
+    # The organs burn -- once they're OUT of their jars (sealed glaze
+    # protects, the same rule the scent system keeps). Each gets its own
+    # pyre-line; the epoch-talk is earned here and nowhere else (CCB).
+    for _jar, _organ, _pyre in (
+        (baboon_jar, "lungs",
+         "They catch with a sigh: four thousand years of held breath, "
+         "let out at once."),
+        (human_jar, "liver",
+         "It burns sullen and slow, like it is keeping a grudge about "
+         "this too."),
+        (mantis_jar, "fungal eyes",
+         "The clutch hisses and shrivels, orange to umber, watching you "
+         "do it right to the end."),
+        (falcon_jar, "intestines",
+         "Cured gut burns eager and even, ring by ring, a slow orange "
+         "clock winding down to nothing. Tribute, ideally. Fuel, as it "
+         "turns out."),
+        (jackal_jar, "brain",
+         "It hisses and pops, thoughts boiling off in order. Somewhere "
+         "near the end, something that smells like bathwater."),
+    ):
+        _jar.contents[_organ].set_property("flammable", True)
+        _jar.contents[_organ].set_property("burn_text", _pyre)
 
     spawn_guts = things.Character(
         "spawn of guts",
@@ -5359,6 +5587,12 @@ def build_game(seed=None):
             it.set_property(Property.TASTE, taste)
             it.add_alias("haunch")
             it.add_alias("meat")
+            it.set_property("flammable", True)
+            it.set_property(
+                "burn_text",
+                "Twice-cooked is a euphemism. It burns down to a black "
+                "fist, and the smell of dinner becomes the smell of regret.",
+            )
             if hint:
                 it.add_command_hint(hint)
             return it
@@ -5485,6 +5719,10 @@ def build_game(seed=None):
         it.add_alias("cocktail")
         it.add_alias("firebomb")
         it.add_alias("bomb")
+        it.set_property(
+            "burn_refusal",
+            "It is already on fire. That is the entire idea.",
+        )
         it.add_command_hint("throw molotov at ...")
         return it
 
@@ -5577,6 +5815,20 @@ def build_game(seed=None):
                     found.append((it, None, loc))
         return found
 
+    def _splash_room(g, room):
+        """The burst wets everything nearby: flammables lying in the room
+        burn with their own lines -- and the hound tank, if it is here,
+        gives up its seam to the fire (the flood trigger takes it away)."""
+        for it in list(room.items.values()):
+            if it.get_property("flammable"):
+                _burn_flammable(g, it, room)
+        if "tank" in room.items and not room.get_property("tank_burst"):
+            room.remove_item(room.items["tank"])
+            g.parser.ok(
+                "Burning gel sheets across the tank and finds the seam. The "
+                "glass sings, and lets go all at once."
+            )
+
     def _molotov_tick(g):
         for mol, holder, room in _molotovs(g):
             if holder is not None and holder is not g.player:
@@ -5605,6 +5857,7 @@ def build_game(seed=None):
                     room.remove_item(mol)
                     for c in live:
                         _burn_victim(g, c)
+                    _splash_room(g, room)
                     continue
                 fuse = int(mol.get_property("fuse") or 0) - 1
                 if fuse <= 0:
@@ -5615,6 +5868,7 @@ def build_game(seed=None):
                             "-- a sheet of orange flame over bare stone, gone "
                             "as fast as it came."
                         )
+                    _splash_room(g, room)
                 else:
                     mol.set_property("fuse", fuse)
                 continue
