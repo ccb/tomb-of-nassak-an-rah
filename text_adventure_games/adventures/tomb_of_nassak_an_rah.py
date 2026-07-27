@@ -555,6 +555,91 @@ def _burn_flammable(g, item, holder):
     g.parser.ok(txt)
 
 
+def _wagon_burns(g):
+    """BURN WAGON: the whole opening tableau, spent on purpose (CCB). One
+    breath for the sail, ten for the ribs; the hold's cargo burns item by
+    item, each with its own pyre-line; the wreck and the hold re-read as
+    aftermath. Critch gets the last word -- if he is standing here to say
+    it. No warning beat: fire this big explains itself."""
+    wreck_loc = g.locations["The Caravan Wreck"]
+    hold = g.locations["The Wagon's Hold"]
+    g.parser.ok(
+        "You put the flame to a torn fold of sailcloth. One breath, and "
+        "the sail is a sheet of light; ten, and the pale ribs are burning "
+        "like the festival the road never got to hold. The heat leans on "
+        "you. There is no putting this back."
+    )
+    # the cargo, archived by fire: everything flammable aboard burns with
+    # its own line (the crates' lids are no protection from THIS)
+    for it in list(hold.items.values()):
+        for inner in list(getattr(it, "contents", {}).values()):
+            if inner.get_property("flammable"):
+                _burn_flammable(g, inner, it)
+        if it.get_property("flammable"):
+            _burn_flammable(g, it, hold)
+    # the wagon itself: ribs to char, hold to hollow
+    old = wreck_loc.items.get("wreck")
+    if old is not None:
+        wreck_loc.remove_item(old)
+    ribs = _scenery(
+        wreck_loc,
+        "charred ribs",
+        "the charred ribs of the wind-wagon",
+        "Wind-wagon ribs burned to black char, still ticking as they "
+        "cool. It outran everything on the road but you.",
+    )
+    for a in ("wreck", "wagon", "wind-wagon", "caravan", "ribs", "ash"):
+        ribs.add_alias(a)
+    ribs.set_property("burn_refusal", "It is ash. You made sure.")
+    wreck_loc.set_property("wagon_burned", True)
+    wreck_loc.description = (
+        "The Tomblands road, at the hour after the Cacklemaw attack -- and "
+        "now the hour after the fire. The caravan is a black geometry in "
+        "the blue sand: charred ribs, ash sifting where cargo was, the "
+        "dead unbothered by the change. It is said the road to Gnomon is "
+        "walked only by the desperate; the proof keeps arriving. "
+        "Northward, three carved faces watch from a slab of azure stone."
+    )
+    hold.description = (
+        "A hollow of char and fallen ribs, open to the sky in places. "
+        "Whatever the crates kept, the fire has archived. The smell of "
+        "saffron is gone; the smell of smoke will outlast the week."
+    )
+    hold.dim_description = (
+        "A hollow of char, open to the wind. Nothing left in it but the "
+        "dark and the smell of smoke."
+    )
+    for veil in hold.veils:
+        if isinstance(veil, perception.Gloom):
+            veil._blurb = (
+                "Char-dark and open to the wind. Nothing left here to "
+                "make out."
+            )
+    crates = hold.items.get("crates")
+    if crates is not None:
+        hold.remove_item(crates)
+        _scenery(
+            hold,
+            "burned crates",
+            "the burned crates, staved in by their own collapse",
+            "Crate-shapes in white ash, holding together out of habit. A "
+            "touch would finish them.",
+        ).add_alias("crates")
+    critch = g.characters.get("Critch")
+    if (
+        critch is not None
+        and critch.location is wreck_loc
+        and not critch.get_property("is_dead")
+        and not critch.get_property("is_unconscious")
+    ):
+        g.parser.ok(
+            "Critch does not move to stop you. He watches the caravan he "
+            "drove across half of Vaarn go up like a festival, and says, "
+            "at last: 'The road to Gnomon is walked only by the "
+            "desperate.' He does not look at you when he says it."
+        )
+
+
 def _gel_dose(g):
     """Consume one dose of gel from the player's flask (relabelling it);
     returns False if they carry no dose."""
@@ -629,6 +714,11 @@ class Burn(actions.Action):
                     return ("refuse_text", "The archivist is past minding. "
                             "Let the dead keep their robes.")
                 return ("robes", silas)
+        if loc is not None and loc.name == "The Wagon's Hold" and any(
+            w in self.command for w in ("wagon", "wreck", "hold", "caravan", "sail")
+        ):
+            return ("refuse_text", "Not from inside it. Even desperation "
+                    "has an order of operations.")
         pool = dict(self.player.carried_items())
         if loc is not None:
             for n, it in loc.items.items():
@@ -638,6 +728,8 @@ class Burn(actions.Action):
             return None
         if it.get_property("burn_refusal"):
             return ("refuse_text", it.get_property("burn_refusal"))
+        if it.name == "wreck" and loc is not None and "wreck" in loc.items:
+            return ("wagon", it)
         if it.name == "tank" and loc is not None and "tank" in loc.items:
             return ("tank", it)
         if it.name.endswith("cylinder") and loc is not None and it.name in loc.items:
@@ -718,6 +810,9 @@ class Burn(actions.Action):
         if kind == "flam":
             it, holder = obj
             _burn_flammable(g, it, holder)
+            return
+        if kind == "wagon":
+            _wagon_burns(g)
             return
         if kind == "robes":
             silas = obj
@@ -2545,16 +2640,16 @@ def build_game(seed=None):
         )
     )
 
-    _scenery(
+    _wreck_scenery = _scenery(
         wreck,
         "wreck",
         "the heeled-over wind-wagon",
         "Pale ribs and torn sailcloth. Wind-wagons are built to outrun "
         "anything on the Tomblands road, and this one nearly did.",
-    ).set_property(
-        "burn_refusal",
-        "You have burned enough of your livelihood this week.",
     )
+    _wreck_scenery.add_alias("wagon")
+    _wreck_scenery.add_alias("wind-wagon")
+    _wreck_scenery.add_alias("caravan")
     _scenery(
         wreck,
         "zoxen",

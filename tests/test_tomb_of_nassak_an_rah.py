@@ -2653,6 +2653,54 @@ def test_a_molotov_splash_burns_the_loot():
     assert "molotov cocktail" not in loc.items
 
 
+def test_burn_wagon_takes_the_whole_tableau():
+    """BURN WAGON commits at once -- no warning beat, fire this big
+    explains itself: the cargo burns line by line, the wreck and hold
+    re-read as aftermath, Critch (present) gets the last word, and the
+    ash refuses a second fire."""
+    game = _game()
+    _hand(game, "Hall of Warriors", "orange cylinder", "plasma-igniter")
+    cap = _texts(game)
+    game.do_command("burn wagon")
+    wreck = game.locations["The Caravan Wreck"]
+    hold = game.locations["The Wagon's Hold"]
+    assert wreck.get_property("wagon_burned")
+    assert "wreck" not in wreck.items and "charred ribs" in wreck.items
+    assert "burned crates" in hold.items
+    text = " ".join(cap.texts(Channel.NARRATION))
+    assert "treasury burning" in text                # the saffron
+    assert "festival the road ever cancelled" in text  # the dates
+    assert "ribbon of white light" in text           # the silk
+    assert "stamp burns last" in text                # the ledger
+    assert "road to Gnomon" in text                  # Critch, present, last word
+    game.do_command("burn wagon")
+    assert any("It is ash" in t for t in cap.texts(Channel.BLOCKED))
+
+
+def test_burn_wagon_without_critch_says_nothing_of_him():
+    """The last word belongs to whoever is standing there to say it --
+    with Critch elsewhere, the fire speaks for itself."""
+    game = _game()
+    _hand(game, "Hall of Warriors", "orange cylinder", "plasma-igniter")
+    game.relocate(game.characters["Critch"], game.locations["Tomb Exterior"])
+    cap = _texts(game)
+    game.do_command("burn wagon")
+    assert "Critch" not in " ".join(cap.texts(Channel.NARRATION))
+    assert game.locations["The Caravan Wreck"].get_property("wagon_burned")
+
+
+def test_burn_wagon_not_from_inside_it():
+    """Even desperation has an order of operations: the hold refuses to be
+    lit around you."""
+    game = _game()
+    _hand(game, "Hall of Warriors", "orange cylinder", "plasma-igniter")
+    game.do_command("enter wagon")
+    cap = _texts(game)
+    game.do_command("burn wagon")
+    assert any("order of operations" in t for t in cap.texts(Channel.BLOCKED))
+    assert "wreck" in game.locations["The Caravan Wreck"].items
+
+
 def test_butchering_the_zoxen_wants_a_blade_and_yields_two_cuts():
     """CCB: the zoxen earn their keep -- BUTCHER with a blade in hand gives
     edible trail meat, twice, and then the sand has the rest."""
