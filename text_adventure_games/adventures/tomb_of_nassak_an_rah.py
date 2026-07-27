@@ -3451,6 +3451,7 @@ def build_game(seed=None):
     )
     gel.add_alias("gel")
     gel.add_alias("flask")
+    gel.add_command_hint("make molotov")
     gel.set_property("figure", "flask")  # the specimen card (40): take once,
     hounds.add_item(gel)                 # examine re-earns
 
@@ -3715,7 +3716,7 @@ def build_game(seed=None):
             DrinkWithManners,
         ],
     )
-    game.max_score = 170
+    game.max_score = 175
     game.rng_seed = seed  # the save blob records this alongside game.journal
     # Turn on the feel / listen / smell probes: the Hall of Youth's dark clue
     # (the unseen bats overhead) is meant to be heard and felt, not just seen.
@@ -4785,7 +4786,17 @@ def build_game(seed=None):
         # Sated is sated: post-feed grace holds even against fresh meat.
         if any((h.get_property(f"_jk:{h.name}") or 0) < 0 for h in _halls):
             return False
-        return _hops(memory, g.player.location) <= 2
+        # Hot food carries farther (CCB): roasted meat on the air buys the
+        # pack an extra room of nose.
+        reach = (
+            3
+            if any(
+                it.get_property("hot food")
+                for it in g.player.carried_items().values()
+            )
+            else 2
+        )
+        return _hops(memory, g.player.location) <= reach
 
     def _scent_pull(g):
         g.relocate(jackal_pack, memory)
@@ -4839,6 +4850,9 @@ def build_game(seed=None):
             g.award("box", 5, "[+5 -- the manifold box]")
         if "friend's fungus" in inv:
             g.award("fungus", 5, "[+5 -- the Friend's Fungus, claimed]")
+        # Cooking pays once (CCB): fire on the meat, plain or saffroned.
+        if "roasted haunch" in inv or "roasted seasoned haunch" in inv:
+            g.award("hot_meal", 5, "[+5 -- a hot meal, four thousand years late]")
         stone = inv.get("glowstone")
         if stone is not None and stone.get_property(Property.IS_LIT):
             g.award("first_light", 5, "[+5 -- light, learned]")
@@ -5210,11 +5224,15 @@ def build_game(seed=None):
     # SEASON/SPICE with the saffron in hand (the bale is a TOOL, not consumed:
     # a pinch seasons a haunch; the fortune survives dinner), ROAST/SEAR/COOK
     # against the igniter's plasma tongue. Both orders reach the same feast.
-    def _cooked(name, short, examine, taste, hint=None):
+    def _cooked(name, short, examine, taste, hint=None, hot=False):
         def factory(g):
             it = things.Item(name, short, examine)
             it.set_property(Property.EDIBLE, True)
-            it.set_property("smells_edible", True)  # hot food carries farther
+            it.set_property("smells_edible", True)
+            if hot:
+                # hot food carries farther: the pack's scent check gives
+                # roasted meat an extra room of reach
+                it.set_property("hot food", True)
             it.set_property(Property.TASTE, taste)
             it.add_alias("haunch")
             it.add_alias("meat")
@@ -5246,6 +5264,7 @@ def build_game(seed=None):
         "roasting argues the other half into supper. The best meal on this "
         "road -- admittedly a short list.",
         hint="season roasted haunch",
+        hot=True,
     )
     _feast = _cooked(
         "roasted seasoned haunch",
@@ -5257,6 +5276,7 @@ def build_game(seed=None):
         "of bitter gold over smoke and brine -- a feast by any honest "
         "measure, eaten standing up in a grave. The Autarch kept his bath; "
         "you would keep this.",
+        hot=True,
     )
     game.add_recipe(
         crafting.Recipe(
@@ -5307,6 +5327,212 @@ def build_game(seed=None):
             "in the heat. A dish the Autarchy would have plated under "
             "silver; you eat like a king in a dead king's house.",
         )
+    )
+
+    # --- The molotov cocktail (CCB): a dose of gel with a three-breath fuse -
+    # MAKE MOLOTOV wants the flask (a dose is metered out, the flask
+    # survives) and any spark -- the igniter or the hound's servo. THROW it
+    # at a thing and the thing burns; hold it three turns and YOU do, 1-3
+    # slots of Severe Burns. Fire kills fungus, not silica: the glass
+    # centipede does not care.
+    def _molotov_gate(g, ch):
+        flask = ch.carried_items().get("flask of gel")
+        if flask is None or int(flask.get_property("portions") or 0) <= 0:
+            return "It wants a dose of embalming gel -- the flask, in hand, with something in it."
+        return None
+
+    def _molotov(g):
+        _gel_dose(g)  # metered from the flask, like every other burn
+        it = things.Item(
+            "molotov cocktail",
+            "a molotov of embalming gel, rag alight",
+            "A dose of embalming gel decanted into a salvaged bottle, a rag "
+            "twisted into its neck and already burning. Everything the gel "
+            "has ever touched is ready to burn; you are holding the proof. "
+            "Three breaths of fuse, and then it stops being yours.",
+        )
+        it.set_property("molotov", True)
+        it.set_property("fuse", 3)
+        it.set_property("gettable", True)
+        it.set_property(
+            Property.TASTE,
+            "of lamp-oil and honey and a very short future. Throw it.",
+        )
+        it.add_alias("molotov")
+        it.add_alias("cocktail")
+        it.add_alias("firebomb")
+        it.add_alias("bomb")
+        it.add_command_hint("throw molotov at ...")
+        return it
+
+    game.add_recipe(
+        crafting.Recipe(
+            name="molotov cocktail",
+            aliases=["molotov", "firebomb", "fire bomb", "gel bomb"],
+            inputs=[],  # the dose is metered from the flask by the factory
+            tools=[
+                crafting.Ingredient(name="flask of gel"),
+                crafting.Ingredient(tag="ignition_source"),
+            ],
+            gate=_molotov_gate,
+            output=_molotov,
+            result_text="You decant a dose of gel into a salvaged bottle, "
+            "twist a rag into its neck, and strike it alive. Three breaths "
+            "of fuse. Whatever you mean to say with this, say it soon.",
+        )
+    )
+
+    _FIRE_KIND = {
+        "spawn of guts": "fungus",
+        "spawn of brain": "fungus",
+        "jackal pack": "pack",
+        "fungal horror": "horror",
+        "glass centipede": "glass",
+    }
+
+    def _burn_victim(g, ch):
+        kind = _FIRE_KIND.get(ch.name)
+        if kind == "fungus":
+            if not ch.get_property(Property.IS_DEAD):
+                ch.set_property(Property.IS_DEAD, True)
+                # the dead drop what they carry, as in any fight -- the
+                # jar-helm survives the fire (glass and glaze do)
+                loc = ch.location
+                for it in list(ch.inventory.values()):
+                    ch.remove_from_inventory(it)
+                    if loc is not None:
+                        loc.add_item(it)
+                g.parser.ok(
+                    f"The burning gel sheets over the {ch.name} and the "
+                    "whole grave-cured body takes like a struck match. It "
+                    "comes apart, softly, still burning. Its jar rolls "
+                    "clear of the fire, unbothered."
+                )
+        elif kind == "pack":
+            if not ch.get_property("is_dead") and ch.location is not None:
+                g.relocate(ch, den)  # the off-map dens (not in g.locations)
+                for nm in ("Hall of Memory", "Hall of Hounds", "Hall of Warriors"):
+                    g.locations[nm].set_property(f"_jk:{nm}", -7)
+                g.parser.ok(
+                    "Fire blooms among the pack and the pack becomes "
+                    "individual jackals, each with a strong opinion about "
+                    "being elsewhere. Singed and offended, they pour back "
+                    "into the dens. They are done with you."
+                )
+        elif kind == "horror":
+            ch.set_property("ablaze", 3)
+            ch.set_property("gel_doused", False)
+            g.show_figure("autarch-e")
+            msg = (
+                "The bottle bursts against the Fungal Horror and the gel "
+                "takes at once: it goes up with a sound like a held breath "
+                "released."
+            )
+            if ch.get_property("knit_seen"):
+                msg += (
+                    " And in the flames, the mending stops: the rents you "
+                    "cut gape, and go on gaping."
+                )
+            g.parser.ok(msg)
+        elif kind == "glass":
+            g.parser.ok(
+                "The fire sheets off the glass centipede and puddles, "
+                "burning, on the stone. Fire kills fungus, not silica: it "
+                "pours on through the flames, lit from below now, which is "
+                "not an improvement."
+            )
+
+    def _molotovs(g):
+        found = []
+        for ch in g.characters.values():
+            for it in list(ch.inventory.values()):
+                if it.get_property("molotov"):
+                    found.append((it, ch, None))
+        for loc in g.locations.values():
+            for it in list(loc.items.values()):
+                if it.get_property("molotov"):
+                    found.append((it, None, loc))
+        return found
+
+    def _molotov_tick(g):
+        for mol, holder, room in _molotovs(g):
+            if holder is not None and holder is not g.player:
+                # a creature holds the bottle: it goes off on the catch --
+                # unless the catcher is a friend, who wants no part of it
+                if holder.name in _FIRE_KIND:
+                    holder.remove_from_inventory(mol)
+                    _burn_victim(g, holder)
+                else:
+                    holder.remove_from_inventory(mol)
+                    g.parser.ok(
+                        f"{holder.name} wants no part of this: the bottle "
+                        "goes straight back over your head and bursts "
+                        "against the stone, scorching no one."
+                    )
+                continue
+            if room is not None:
+                # thrown, deflected, or dropped: it bursts among whatever
+                # lives there, or gutters out on bare stone
+                live = [
+                    c
+                    for c in room.characters.values()
+                    if c.name in _FIRE_KIND and not c.get_property(Property.IS_DEAD)
+                ]
+                if live:
+                    room.remove_item(mol)
+                    for c in live:
+                        _burn_victim(g, c)
+                    continue
+                fuse = int(mol.get_property("fuse") or 0) - 1
+                if fuse <= 0:
+                    room.remove_item(mol)
+                    if g.player.location is room:
+                        g.parser.ok(
+                            "The abandoned molotov gutters, tips, and bursts "
+                            "-- a sheet of orange flame over bare stone, gone "
+                            "as fast as it came."
+                        )
+                else:
+                    mol.set_property("fuse", fuse)
+                continue
+            # in your own hands, burning down
+            fuse = int(mol.get_property("fuse") or 0) - 1
+            mol.set_property("fuse", fuse)
+            if fuse <= 0:
+                g.player.discard_item(mol)
+                fatal = _wound_player(
+                    g,
+                    "Severe Burns",
+                    _RNG.randint(1, 3),
+                    (
+                        "The gel takes your sleeve, your shoulder, the side "
+                        "of your neck. You beat it out. Some of it stays.",
+                        "Fire runs up your arm like it was invited. The skin "
+                        "keeps the memory.",
+                        "The bottle bursts in your grip, and for a moment "
+                        "you are the brightest thing in the tomb.",
+                    ),
+                )
+                if fatal:
+                    _die(
+                        g,
+                        "You held the argument too long, and it concluded. "
+                        "THE END.",
+                    )
+                else:
+                    g.parser.ok(
+                        "The fuse meets the gel in your hand. You are wearing "
+                        "some of what you meant to throw."
+                    )
+            elif fuse == 1:
+                g.parser.ok("The rag is nearly gone. THROW it, or wear it.")
+        return True
+
+    game.add_trigger(
+        "molotov_fuse",
+        lambda g: bool(_molotovs(g)),
+        _molotov_tick,
+        repeatable=True,
     )
 
     # The sphere has NO noise hazard (CCB: noise reactions are covered
@@ -6048,7 +6274,7 @@ WIN_WALKTHROUGH = [
     "down",
     "take crystal shard",  # the fall forges a knife; butchery accepts it
     "south",
-    "butcher zoxen",  # the haunch stays where it falls; the BLOOD travels
+    "butcher zoxen",  # the haunch stays where it falls (for now); the BLOOD travels
     "drop crystal shard",  # its work is done
     "take zox blood",  # one slot, scent-quiet, and the pack drinks too
     "north",
@@ -6066,6 +6292,15 @@ WIN_WALKTHROUGH = [
     "attack spawn of guts with blade",
     "attack spawn of brain with blade",
     "drop blade",  # its work is done; jars ride lighter than swords
+    # the quiet corridor (CCB): spawns down, pack paid and sated -- time
+    # for the hot meal the butchery promised, back where the haunch fell
+    "west",
+    "south",
+    "take zox haunch",
+    "roast haunch",  # a hot meal, four thousand years late (+5)
+    "drop roasted haunch",  # the sated pack lets dinner lie
+    "north",
+    "east",
     "take falcon jar",
     "take jackal jar",
     "break viridian cylinder",

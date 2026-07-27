@@ -1066,6 +1066,10 @@ class Craft(base.Action):
             or self.character.location.name != recipe.location
         ):
             return False, "You can't make that here."
+        if recipe.gate is not None:
+            gap = recipe.gate(self.game, self.character)
+            if gap:
+                return False, gap
         present = self._present()
         for tool in recipe.tools:
             if self._available(tool, present) < tool.count:

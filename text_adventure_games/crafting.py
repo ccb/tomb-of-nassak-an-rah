@@ -88,6 +88,11 @@ class Recipe:
     # unchanged). Set False to gate the recipe on discovery (issue #135); the
     # game then calls Game.learn_recipe(name) from a recipe book, an NPC, etc.
     known: bool = True
+    # An optional extra precondition beyond ingredients/tools/location:
+    # gate(game, crafter) returns None when craftable, or the fail message
+    # (e.g. "the flask is empty" for a recipe that meters doses from a tool
+    # rather than consuming it).
+    gate: Callable | None = None
 
     def __post_init__(self):
         self.inputs = [_as_ingredient(i) for i in self.inputs]

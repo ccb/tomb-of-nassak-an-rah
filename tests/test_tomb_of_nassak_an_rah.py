@@ -1150,7 +1150,7 @@ def test_minor_threats_pay_when_quelled_by_any_means():
     game.do_command("look")
     assert game.scored("spawn_guts") and game.scored("spawn_brain")
     assert game.score == before + 10
-    assert game.max_score == 170
+    assert game.max_score == 175
 
 
 def test_the_pack_answers_to_pack():
@@ -2338,6 +2338,137 @@ def test_both_cooking_orders_reach_the_autarchs_roast():
     assert "roasted haunch" not in inv
 
 
+def test_roasted_meat_is_still_jackal_bait_and_carries_farther():
+    """Cooking doesn't launder the scent (CCB): the roasted haunch pulls the
+    pack like the raw cut -- and hot food buys the noses an extra room, so a
+    roast at the wreck itself is a dinner bell raw meat is not."""
+    game = _game()
+    _haunch_in_hand(game)
+    _hand(game, "Hall of Warriors", "orange cylinder", "plasma-igniter")
+    pack = game.characters["jackal pack"]
+    game.do_command("wait")  # raw meat at the wreck: out of range
+    assert pack.location.name == "Shallow Dens"
+    game.do_command("roast haunch")
+    game.do_command("wait")  # hot food: the extra room of nose reaches here
+    assert pack.location.name != "Shallow Dens"
+
+
+def test_the_first_hot_meal_scores_once():
+    """Cooking the meat pays +5, once -- plain roast or the Autarch's, and
+    never twice."""
+    game = _game()
+    _haunch_in_hand(game)
+    _saffron_in_hand(game)
+    _hand(game, "Hall of Warriors", "orange cylinder", "plasma-igniter")
+    before = game.score
+    game.do_command("roast haunch")
+    assert game.score == before + 5
+    game.do_command("drop roasted haunch")
+    game.relocate(game.player, game.locations["The Caravan Wreck"])
+    game.do_command("butcher zoxen")
+    game.do_command("take lean zox haunch")
+    game.do_command("season haunch")
+    game.do_command("roast seasoned haunch")  # the feast: same key, no double
+    assert game.score == before + 5
+
+
+def _armed_with_molotov_fixings(game):
+    """Flask (3 doses) and igniter in hand, wherever the player stands."""
+    gel = game.locations["Hall of Hounds"].items["flask of gel"]
+    game.locations["Hall of Hounds"].remove_item(gel)
+    game.player.add_to_inventory(gel)
+    _hand(game, "Hall of Warriors", "orange cylinder", "plasma-igniter")
+    return gel
+
+
+def test_the_molotov_wants_a_dose_and_a_spark():
+    """MAKE MOLOTOV meters one dose from the flask (which survives) and
+    wants any spark -- igniter or servo. Empty-handed, the gaps are named."""
+    game = _game()
+    cap = _texts(game)
+    game.do_command("make molotov")
+    assert any("dose of embalming gel" in t for t in cap.texts(Channel.BLOCKED))
+    gel = _armed_with_molotov_fixings(game)
+    game.do_command("make molotov")
+    assert "molotov cocktail" in game.player.inventory
+    assert int(gel.get_property("portions")) == 2  # a dose, not the flask
+    game.do_command("throw molotov north")  # get rid of it (fuse tests follow)
+
+
+def test_an_unthrown_molotov_burns_its_holder():
+    """Three breaths of fuse: held past them, it bursts -- Severe Burns
+    filling 1-3 slots, and the bottle is gone."""
+    game = _game()
+    _armed_with_molotov_fixings(game)
+    game.do_command("make molotov")     # fuse 3 -> 2
+    game.do_command("look")             # 2 -> 1 (the warning round)
+    game.do_command("look")             # 1 -> 0: it concludes
+    burns = [w for w in game.player.wounds if w.name == "Severe Burns"]
+    assert burns and 1 <= burns[0].slots <= 3
+    assert "molotov cocktail" not in game.player.inventory
+
+
+def test_a_molotov_burns_a_spawn_and_leaves_the_jar():
+    """Thrown at a fungal spawn, the fire kills it outright -- and its
+    jar-helm survives to be claimed, same as the blade route."""
+    game = _game()
+    _armed_with_molotov_fixings(game)
+    guts = game.characters["spawn of guts"]
+    game.relocate(game.player, guts.location)
+    game.do_command("make molotov")
+    game.do_command("throw molotov at spawn of guts")
+    assert guts.get_property("is_dead")
+    assert "falcon jar" in game.player.location.items  # dropped clear of the fire
+    game.do_command("take falcon jar")
+    assert "falcon jar" in game.player.inventory
+
+
+def test_fire_kills_fungus_not_silica():
+    """The glass centipede does not care about the molotov (CCB): the fire
+    sheets off the glass, and the creature stays exactly as alive."""
+    game = _game()
+    _armed_with_molotov_fixings(game)
+    cent = game.characters["glass centipede"]
+    _hand(game, "Hall of Warriors", "amber cylinder", "respirator")
+    game.do_command("wear respirator")
+    game.relocate(game.player, cent.location)
+    game.do_command("make molotov")
+    game.do_command("throw molotov at glass centipede")
+    assert not cent.get_property("is_dead")
+    assert not cent.get_property("is_unconscious")
+
+
+def test_a_molotov_sets_the_horror_ablaze():
+    """The bottle is a pre-packaged dose-and-spark: thrown at the Horror
+    (no hands -- it deflects to the floor and bursts among what lives
+    there), it goes up exactly as doused-and-ignited does."""
+    game = _game()
+    _armed_with_molotov_fixings(game)
+    horror = game.characters["fungal horror"]
+    sphere = game.locations["Burial Sphere of Nassak An-Rah"]
+    game.relocate(game.player, sphere)
+    if horror.location is not sphere:
+        game.relocate(horror, sphere)
+    game.do_command("make molotov")
+    game.do_command("throw molotov at fungal horror")
+    assert int(horror.get_property("ablaze") or 0) >= 1
+
+
+def test_a_molotov_scatters_the_pack_for_good():
+    """Fire among the jackals sends them singed back to the dens, and the
+    halls stay at deep peace -- settled, the same ledger as tribute."""
+    game = _game()
+    _armed_with_molotov_fixings(game)
+    pack = game.characters["jackal pack"]
+    game.relocate(game.player, game.locations["Hall of Memory"])
+    game.relocate(pack, game.locations["Hall of Memory"])
+    game.do_command("make molotov")
+    game.do_command("throw molotov at jackal pack")
+    assert pack.location.name == "Shallow Dens"
+    game.do_command("look")  # a round for the score sweep
+    assert game.scored("jackals_settled")
+
+
 def test_butchering_the_zoxen_wants_a_blade_and_yields_two_cuts():
     """CCB: the zoxen earn their keep -- BUTCHER with a blade in hand gives
     edible trail meat, twice, and then the sand has the rest."""
@@ -2547,7 +2678,7 @@ def test_the_full_winning_run_scores_100():
             break
         game.do_command(cmd)
     assert game.is_won()
-    assert game.score == 170 == game.max_score
+    assert game.score == 175 == game.max_score
     assert game.player.location.name == "Tomb Exterior"
 
 
