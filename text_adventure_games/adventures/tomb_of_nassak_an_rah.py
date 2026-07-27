@@ -1224,6 +1224,128 @@ class FixCoffin(actions.Action):
         self.game.show_figure("autarch", force=True)  # the laid-to-rest beat
 
 
+class PryBox(actions.Action):
+    """Pry the manifold box: a 3D lever against 4D geometry (CCB). It warns
+    once -- the seam retreating through an angle the room doesn't have --
+    and every pry after that closes through your fingers the short way and
+    KEEPS them: a Severed Fingers wound per attempt, and a body has only so
+    many slots. The box is never scratched; the blade is never lost. With
+    the ulfire lantern LIT you can see exactly why it will never work, and
+    the box declines to maim someone who can see the angle."""
+
+    ACTION_NAME = "pry box"
+    ACTION_DESCRIPTION = "Pry at the manifold box (the box wins)"
+    ACTION_ALIASES = [
+        "pry manifold box",
+        "pry the box",
+        "pry the manifold box",
+        "pry open box",
+        "pry open the box",
+        "pry open manifold box",
+        "pry box with blade",
+        "pry box open",
+        "force box",
+        "force the box",
+        "force manifold box",
+        "force open box",
+    ]
+
+    def __init__(self, game, command, actor=None):
+        super().__init__(game, actor=actor)
+        self.player = self.game.player
+        self.command = command
+
+    def _box(self):
+        held = self.player.carried_items()
+        if "manifold box" in held:
+            return held["manifold box"]
+        loc = self.player.location
+        if loc is not None and "manifold box" in loc.items:
+            return loc.items["manifold box"]
+        return None
+
+    def _edge_name(self):
+        for n, it in self.player.carried_items().items():
+            if "blade" in n or "dagger" in n or it.get_property("edged"):
+                return n
+        return None
+
+    def check_preconditions(self) -> bool:
+        if self._box() is None:
+            self.parser.fail("There's no box here to pry.")
+            return False
+        return True
+
+    def apply_effects(self):
+        g = self.game
+        box = self._box()
+        lantern = self.player.carried_items().get("ulfire lantern")
+        if lantern is not None and lantern.get_property(Property.IS_LIT):
+            # Seen by ulfire light, the refusal is legible -- and bloodless.
+            g.show_figure("tesseract-u")
+            self.parser.ok(
+                "In the lantern's light you can see it plainly: the seam "
+                "retreats through the ninth angle as anything approaches -- "
+                "always one turn ahead, in a direction no lever in this room "
+                "owns. Your fingers ache in premonition. Put it down."
+            )
+            return
+        edge = self._edge_name()
+        if not box.get_property("pry_warned"):
+            # The warning beat: the tomb's hazards warn before they take.
+            box.set_property("pry_warned", True)
+            g.show_figure("tesseract")
+            if edge:
+                self.parser.ok(
+                    f"You set the {edge} under the lid-seam and lean. The "
+                    "seam turns out to be on the far side of the box, then "
+                    "the near side, then somewhere your wrist has strong "
+                    "opinions about. The blade comes back at an angle you "
+                    "did not send it in at -- and for one cold moment your "
+                    "fingers stay where the seam was. All of them return. "
+                    "This once."
+                )
+            else:
+                self.parser.ok(
+                    "Pry it with what -- your fingers? The box accepts. The "
+                    "seam parts, your fingertips slide in to the second "
+                    "knuckle, and the angle begins, very gently, to close. "
+                    "You snatch them back. All of them return. This once."
+                )
+            return
+        # The taking beat: the seam closes through your fingers the short
+        # way -- the way that does not exist in rooms -- and keeps them.
+        self.parser.ok(
+            "You lean harder. Something gives, with a sound like a knuckle "
+            "cracking in a room you are not in. It is not the box. The seam "
+            "closes through your fingers the short way -- the way that does "
+            "not exist in rooms -- and keeps them."
+        )
+        fatal = _wound_player(
+            g,
+            "Severed Fingers",
+            1,
+            (
+                "You count. You come up short.",
+                "The stumps are mirror-smooth, bloodless, already cold. "
+                "Somewhere inside the box -- inside ALL of it -- they are "
+                "still gripping.",
+                "Four thousand years of geometry, and your fingers are the "
+                "newest thing it owns.",
+            ),
+        )
+        if fatal:
+            _die(
+                g,
+                "You ran out of hand before the box ran out of angles. "
+                "THE END.",
+            )
+        else:
+            self.parser.ok(
+                "The box is not scratched. Gilt: honest. Geometry: not."
+            )
+
+
 class PryCoffin(actions.Action):
     """Pry open the Autarch's anti-entropy coffin in the zero-g Burial Sphere to
     claim the Exotica. Prying wants two things: an ANCHOR (the magnetic boots
@@ -3704,6 +3826,7 @@ def build_game(seed=None):
             LightWithDemo,
             FixCoffin,
             PryCoffin,
+            PryBox,
             Remember,
             SayPrayer,
             TieSilk,

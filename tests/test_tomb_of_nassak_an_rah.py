@@ -2469,6 +2469,68 @@ def test_a_molotov_scatters_the_pack_for_good():
     assert game.scored("jackals_settled")
 
 
+def _box_in_hand(game):
+    """Fish the manifold box out of wherever it nests and hand it over."""
+    for loc in game.locations.values():
+        if "manifold box" in loc.items:
+            box = loc.items["manifold box"]
+            loc.remove_item(box)
+            game.player.add_to_inventory(box)
+            return box
+        for it in loc.items.values():
+            if "manifold box" in getattr(it, "contents", {}):
+                box = it.contents["manifold box"]
+                it.remove_item(box)
+                game.player.add_to_inventory(box)
+                return box
+    raise AssertionError("no manifold box anywhere")
+
+
+def test_prying_the_box_warns_once_then_takes_fingers():
+    """PRY BOX: the first attempt is the warning (the seam retreats through
+    an angle the room doesn't have); the second closes through your fingers
+    and KEEPS them -- a Severed Fingers wound -- and the box is never
+    scratched, the blade never lost (CCB)."""
+    game = _game()
+    _box_in_hand(game)
+    _hand(game, "Hall of Warriors", "cerulean cylinder", "prismatic blade")
+    game.do_command("pry box")  # the warning: all of them return, this once
+    assert not any(w.name == "Severed Fingers" for w in game.player.wounds)
+    game.do_command("pry box")  # the taking
+    wounds = [w for w in game.player.wounds if w.name == "Severed Fingers"]
+    assert len(wounds) == 1 and wounds[0].slots == 1
+    assert "manifold box" in game.player.inventory  # not scratched
+    assert "prismatic blade" in game.player.inventory  # not lost
+    game.do_command("pry box")  # a slow learner loses more
+    assert sum(1 for w in game.player.wounds if w.name == "Severed Fingers") == 2
+
+
+def test_the_lantern_shows_why_prying_the_box_cannot_work():
+    """With the ulfire lantern LIT, the pry is refused legibly and
+    bloodlessly -- you can SEE the seam keep its turn ahead."""
+    game = _game()
+    cap = _texts(game)
+    _box_in_hand(game)
+    silas = game.characters["Silas"]
+    lantern = silas.inventory.get("ulfire lantern")
+    if lantern is None:  # wherever the lantern waits, claim it directly
+        for loc in game.locations.values():
+            if "ulfire lantern" in loc.items:
+                lantern = loc.items["ulfire lantern"]
+                loc.remove_item(lantern)
+                break
+        else:
+            raise AssertionError("no ulfire lantern anywhere")
+    else:
+        silas.remove_from_inventory(lantern)
+    game.player.add_to_inventory(lantern)
+    lantern.set_property("is_lit", True)
+    game.do_command("pry box")
+    game.do_command("pry box")  # seen plainly, it never escalates
+    assert not any(w.name == "Severed Fingers" for w in game.player.wounds)
+    assert "tesseract-u" in cap.texts(Channel.FIGURE)
+
+
 def test_butchering_the_zoxen_wants_a_blade_and_yields_two_cuts():
     """CCB: the zoxen earn their keep -- BUTCHER with a blade in hand gives
     edible trail meat, twice, and then the sand has the rest."""
