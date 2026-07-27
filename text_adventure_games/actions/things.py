@@ -965,6 +965,10 @@ CRAFT_VERBS = (
     "assemble",
     "build",
     "braid",
+    "season",
+    "spice",
+    "roast",
+    "sear",
 )
 
 
@@ -1078,12 +1082,19 @@ class Craft(base.Action):
         recipes = self._recipes()
         if not recipes:
             return
-        # 1) by output name / alias appearing in the target (longest wins).
+        # The chosen verb can carry intent ("season haunch" vs "roast
+        # haunch"): recipes may register verb-phrase aliases, so names are
+        # matched against the command with its crafting verb kept, not just
+        # the stripped target. The probe is a superset of the target, so
+        # plain output-name lookups ("make stew") behave as before.
+        first, _, _ = self.command.partition(" ")
+        probe = f"{first} {self.target}" if first in CRAFT_VERBS else self.target
+        # 1) by output name / alias appearing in the probe (longest wins).
         if self.target:
             best, best_len = None, -1
             for r in recipes:
                 for n in r.names():
-                    if n and n in self.target and len(n) > best_len:
+                    if n and n in probe and len(n) > best_len:
                         best, best_len = r, len(n)
             if best is not None:
                 self.recipe, self.named = best, True

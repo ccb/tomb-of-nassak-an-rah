@@ -19,6 +19,7 @@ from text_adventure_games import (
     things,
     actions,
     blocks,
+    crafting,
     reactions,
     perception,
 )
@@ -1693,6 +1694,11 @@ class Butcher(actions.Action):
         meat.add_alias("meat")
         meat.add_alias("zox meat")
         meat.add_alias("haunch")
+        # trail cooking (the recipes, registered with the game): both cuts
+        # answer the same tag, so either seasons or roasts
+        meat.set_property("raw haunch", True)
+        meat.add_command_hint("roast haunch")
+        meat.add_command_hint("season haunch")
         self.player.location.add_item(meat)
         if cut == 1:
             # The first cut catches the blood too (CCB): zoxen are half
@@ -5198,6 +5204,109 @@ def build_game(seed=None):
         limit=1,
         warns=(),  # unreachable at limit=1: the first breath IS the harm
         harm=_spore_sear,
+    )
+
+    # --- Trail cooking (CCB): the zox haunch takes seasoning and fire -------
+    # SEASON/SPICE with the saffron in hand (the bale is a TOOL, not consumed:
+    # a pinch seasons a haunch; the fortune survives dinner), ROAST/SEAR/COOK
+    # against the igniter's plasma tongue. Both orders reach the same feast.
+    def _cooked(name, short, examine, taste, hint=None):
+        def factory(g):
+            it = things.Item(name, short, examine)
+            it.set_property(Property.EDIBLE, True)
+            it.set_property("smells_edible", True)  # hot food carries farther
+            it.set_property(Property.TASTE, taste)
+            it.add_alias("haunch")
+            it.add_alias("meat")
+            if hint:
+                it.add_command_hint(hint)
+            return it
+
+        return factory
+
+    _seasoned = _cooked(
+        "seasoned haunch",
+        "a saffron-dusted haunch of zox meat",
+        "A dense briny haunch gone aristocratic: crimson threads worked "
+        "into the dark meat, a pinch of cargo worth more than the wagon "
+        "that hauled it. The souks of Gnomon would call this a crime. In "
+        "these halls, meat has listeners -- and now it has perfume.",
+        "of brine and bitter gold -- salt meat wearing a fortune. Somewhere "
+        "a merchant's ghost is doing arithmetic.",
+        hint="roast seasoned haunch",
+    )
+    _roasted = _cooked(
+        "roasted haunch",
+        "a roasted haunch of zox meat",
+        "Seared dark outside, dense and steaming within -- the igniter's "
+        "plasma tongue makes a fine, unreasonable campfire. The first hot "
+        "food these halls have smelled in four thousand years, and "
+        "everything with a nose now knows your business.",
+        "of salt, smoke, and victory. Zoxen are half salt by weight; "
+        "roasting argues the other half into supper. The best meal on this "
+        "road -- admittedly a short list.",
+        hint="season roasted haunch",
+    )
+    _feast = _cooked(
+        "roasted seasoned haunch",
+        "a roast worthy of the Autarchy",
+        "Seared crimson-gold, saffron baked into the crust. The Autarch's "
+        "kitchens would have plated this under a silver dome, to trumpets. "
+        "You made it in a tomb, with a plasma tool and a dead zox, and it "
+        "is perfect.",
+        "of bitter gold over smoke and brine -- a feast by any honest "
+        "measure, eaten standing up in a grave. The Autarch kept his bath; "
+        "you would keep this.",
+    )
+    game.add_recipe(
+        crafting.Recipe(
+            name="seasoned haunch",
+            aliases=["season haunch", "spice haunch", "season zox haunch",
+                     "spice zox haunch"],
+            inputs=[crafting.Ingredient(tag="raw haunch")],
+            tools=[crafting.Ingredient(name="bale of saffron")],
+            output=_seasoned,
+            result_text="You work a pinch of saffron -- a coin's weight of "
+            "a fortune -- into the dark meat. The bale barely notices. The "
+            "haunch is transformed.",
+        )
+    )
+    game.add_recipe(
+        crafting.Recipe(
+            name="roasted haunch",
+            aliases=["roast haunch", "sear haunch", "cook haunch",
+                     "roast zox haunch", "cook zox haunch"],
+            inputs=[crafting.Ingredient(tag="raw haunch")],
+            tools=[crafting.Ingredient(name="plasma-igniter")],
+            output=_roasted,
+            result_text="You hold the haunch to the igniter's plasma tongue "
+            "and turn it slowly. Fat spits; the smell of dinner rolls out "
+            "into halls that have not smelled dinner in four thousand years.",
+        )
+    )
+    game.add_recipe(
+        crafting.Recipe(
+            name="roasted seasoned haunch",
+            aliases=["roast seasoned haunch", "sear seasoned haunch",
+                     "cook seasoned haunch"],
+            inputs=[crafting.Ingredient(name="seasoned haunch")],
+            tools=[crafting.Ingredient(name="plasma-igniter")],
+            output=_feast,
+            result_text="You turn the saffron-dusted haunch in the plasma "
+            "tongue until the crust sets crimson-gold. Somewhere below, the "
+            "tomb smells money cooking.",
+        )
+    )
+    game.add_recipe(
+        crafting.Recipe(
+            aliases=["season roasted haunch", "spice roasted haunch"],
+            inputs=[crafting.Ingredient(name="roasted haunch")],
+            tools=[crafting.Ingredient(name="bale of saffron")],
+            output=_feast,
+            result_text="You dust the hot crust with saffron and it blooms "
+            "in the heat. A dish the Autarchy would have plated under "
+            "silver; you eat like a king in a dead king's house.",
+        )
     )
 
     # The sphere has NO noise hazard (CCB: noise reactions are covered

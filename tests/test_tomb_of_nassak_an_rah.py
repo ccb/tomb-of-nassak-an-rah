@@ -2270,6 +2270,74 @@ def test_scent_has_a_two_room_range():
     assert game.characters["jackal pack"].location.name == "Shallow Dens"
 
 
+def _haunch_in_hand(game):
+    """Blade -> butcher -> take the haunch, at the wreck."""
+    _hand(game, "Hall of Warriors", "cerulean cylinder", "prismatic blade")
+    game.do_command("butcher zoxen")
+    game.do_command("take zox haunch")
+
+
+def _saffron_in_hand(game):
+    """Fetch the bale from the wagon's hold, ending back at the wreck."""
+    game.do_command("enter wagon")
+    game.do_command("open crates")
+    game.do_command("take bale of saffron")
+    game.do_command("leave")
+
+
+def test_season_haunch_spends_a_pinch_and_keeps_the_bale():
+    """SEASON HAUNCH with the saffron in hand: the raw cut becomes the
+    seasoned haunch, and the bale -- a tool, not an ingredient -- survives
+    dinner with its fortune intact (CCB)."""
+    game = _game()
+    _haunch_in_hand(game)
+    _saffron_in_hand(game)
+    game.do_command("season haunch")
+    inv = game.player.inventory
+    assert "seasoned haunch" in inv and "zox haunch" not in inv
+    assert "bale of saffron" in inv  # a pinch, not the fortune
+    game.do_command("taste seasoned haunch")
+
+
+def test_roast_haunch_wants_the_igniter_and_cooks_the_cut():
+    """ROAST HAUNCH sears the raw cut against the igniter's plasma tongue;
+    the igniter is a tool and survives. Without it, the gap is named."""
+    game = _game()
+    _haunch_in_hand(game)
+    cap = _texts(game)
+    game.do_command("roast haunch")  # no igniter yet: the gap is named
+    assert any("plasma-igniter" in t for t in cap.texts(Channel.BLOCKED))
+    _hand(game, "Hall of Warriors", "orange cylinder", "plasma-igniter")
+    game.do_command("roast haunch")
+    inv = game.player.inventory
+    assert "roasted haunch" in inv and "zox haunch" not in inv
+    assert "plasma-igniter" in inv
+
+
+def test_both_cooking_orders_reach_the_autarchs_roast():
+    """Season-then-roast and roast-then-season both land on the roasted
+    seasoned haunch -- the parser never punishes doing it backwards."""
+    # order one: season, then roast
+    game = _game()
+    _haunch_in_hand(game)
+    _saffron_in_hand(game)
+    _hand(game, "Hall of Warriors", "orange cylinder", "plasma-igniter")
+    game.do_command("season haunch")
+    game.do_command("roast seasoned haunch")
+    assert "roasted seasoned haunch" in game.player.inventory
+    # order two: roast, then season -- the second cut this time
+    game.do_command("drop roasted seasoned haunch")  # make room for round two
+    game.relocate(game.player, game.locations["The Caravan Wreck"])
+    game.do_command("butcher zoxen")
+    game.do_command("take lean zox haunch")
+    game.do_command("roast haunch")
+    assert "roasted haunch" in game.player.inventory
+    game.do_command("season roasted haunch")
+    inv = game.player.inventory
+    assert "roasted seasoned haunch" in inv
+    assert "roasted haunch" not in inv
+
+
 def test_butchering_the_zoxen_wants_a_blade_and_yields_two_cuts():
     """CCB: the zoxen earn their keep -- BUTCHER with a blade in hand gives
     edible trail meat, twice, and then the sand has the rest."""
