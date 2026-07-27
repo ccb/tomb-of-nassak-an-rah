@@ -46,6 +46,14 @@
   }
   .chip-btn:hover, .chip-btn:active { background: var(--ph-dim); color: var(--bg); }
   header .rule { color: var(--ph-dim); margin-top: 1rem; overflow: hidden; white-space: nowrap; }
+  /* the view filter: desktop cards, their KEY-m phone twins, or both */
+  .viewbar { display: flex; align-items: baseline; gap: .6rem; margin-top: 1rem; }
+  .viewbar .lbl { color: var(--ph-dim); font-size: .72rem; letter-spacing: .14em; }
+  .viewbar .chip-btn { background: transparent; font-family: inherit; }
+  .viewbar .chip-btn.active { background: var(--ph-dim); color: var(--bg); }
+  body.view-desktop section.twin, body.view-desktop .jump a.twin { display: none; }
+  body.view-phone section.card:not(.twin),
+  body.view-phone .jump a.card:not(.twin) { display: none; }
   section {
     display: flex; flex-direction: column; gap: .9rem;
     /* offscreen cards cost nothing: no layout, no paint, no CRT flicker */
@@ -105,6 +113,12 @@
        outline-wireframe 3D under the terminal's CRT dressing. All self-contained:
        no libraries, no assets, quantized to hand-made frame steps.</p>
     <div class="rule">================================================================</div>
+    <div class="viewbar" id="viewbar" role="group" aria-label="Card filter">
+      <span class="lbl">VIEW:</span>
+      <button class="chip-btn" data-view="desktop">DESKTOP</button>
+      <button class="chip-btn" data-view="phone">PHONE</button>
+      <button class="chip-btn" data-view="both">BOTH</button>
+    </div>
     <nav id="jump" class="jump" aria-label="Card index"></nav>
   </header>
 
@@ -14242,4 +14256,36 @@
 
 
 })();
+</script>
+<script>
+  // The DESKTOP / PHONE / BOTH filter. Phone twins are the KEY-m cards;
+  // everything is classified from the screen element's id, so new cards
+  // sort themselves. The choice persists in localStorage. (Kept as its own
+  // plain script -- gen_figures.py extracts the big IIFE above by its
+  // exact opening and closing markers, which this block must not echo.)
+  addEventListener("DOMContentLoaded", () => {
+    for (const sec of document.querySelectorAll(".wrap > section")) {
+      const el = sec.querySelector(".screen svg, .screen canvas");
+      if (!el) continue;
+      sec.classList.add("card");
+      if (el.id.endsWith("-m")) sec.classList.add("twin");
+    }
+    for (const a of document.querySelectorAll("#jump a")) {
+      a.classList.add("card");
+      if ((a.getAttribute("href") || "").endsWith("-m")) a.classList.add("twin");
+    }
+    const bar = document.getElementById("viewbar");
+    if (!bar) return;
+    const btns = bar.querySelectorAll("[data-view]");
+    const set = (view) => {
+      document.body.classList.remove("view-desktop", "view-phone", "view-both");
+      document.body.classList.add("view-" + view);
+      for (const b of btns) b.classList.toggle("active", b.dataset.view === view);
+      try { localStorage.setItem("reelView", view); } catch (e) { /* private mode */ }
+    };
+    for (const b of btns) b.addEventListener("click", () => set(b.dataset.view));
+    let saved = "both";
+    try { saved = localStorage.getItem("reelView") || "both"; } catch (e) { /* ditto */ }
+    set(saved);
+  });
 </script>
