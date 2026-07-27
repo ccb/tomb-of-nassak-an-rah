@@ -884,8 +884,8 @@ class Burn(actions.Action):
                     return False
                 if not _has_spark(self.player):
                     self.parser.fail(
-                        "Nothing in your hands makes a flame. It would want "
-                        "a spark -- the igniter, or the hound's servo."
+                        "You have nothing that makes a spark hot enough "
+                        "to mean it."
                     )
                     return False
                 self._gen = gen
