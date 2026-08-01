@@ -326,30 +326,46 @@ function encipher(text) {
   }).join("");
 }
 
-/* The decrypt cascade: the fresh line resolves left-to-right, a bright
-   churn of glitch running a few characters ahead of the front. Instant
-   when the typewriter is off or the reader prefers reduced motion. */
+/* The decrypt cascade: the fresh line resolves left-to-right in three
+   visibly distinct regions -- resolved plaintext in reading phosphor, a
+   six-character churn head burning YELLOW just ahead of the front, and
+   the still-enciphered tail in cipher dim. Paced to ~2.5s regardless of
+   line length (the per-tick advance scales with the text), so the sweep
+   is an event, not a blink. Instant when the typewriter is off or the
+   reader prefers reduced motion. */
 function decryptReveal(span, real) {
   const instant =
     settings.typewriter === "off" ||
     matchMedia("(prefers-reduced-motion: reduce)").matches;
   if (instant || !real) { span.textContent = real; span.className = ""; return; }
-  const tail = encipher(real);
   const chars = [...real];
+  const ctail = [...encipher(real)];
+  const n = chars.length;
+  const per = Math.max(1, Math.round(n / 55)); // ~55 ticks x 45ms ≈ 2.5s
+  const FRONT = 6;
   let front = 0, tick = 0;
+  span.className = ""; // the regions below carry their own colors
   const iv = setInterval(() => {
     if (!span.isConnected) { clearInterval(iv); return; } // panel re-rendered
-    front = Math.min(chars.length, front + 2);
-    let out = chars.slice(0, front).join("");
-    for (let i = front; i < chars.length; i++) {
-      out += i < front + 3 && chars[i] !== " "
-        ? CIPHER_CHURN[(Math.random() * CIPHER_CHURN.length) | 0]
-        : tail[i];
-    }
-    span.textContent = out;
-    if (++tick % 4 === 0) sounds.tick();
-    if (front >= chars.length) { clearInterval(iv); span.className = ""; }
-  }, 30);
+    front = Math.min(n, front + per);
+    const done = document.createElement("span");
+    done.className = "deciphered";
+    done.textContent = chars.slice(0, front).join("");
+    const head = document.createElement("span");
+    head.className = "decipher-front";
+    let hs = "";
+    for (let i = front; i < Math.min(n, front + FRONT); i++)
+      hs += chars[i] === " "
+        ? " "
+        : CIPHER_CHURN[(Math.random() * CIPHER_CHURN.length) | 0];
+    head.textContent = hs;
+    const rest = document.createElement("span");
+    rest.className = "cipher";
+    rest.textContent = ctail.slice(Math.min(n, front + FRONT)).join("");
+    span.replaceChildren(done, head, rest);
+    if (++tick % 3 === 0) sounds.tick();
+    if (front >= n) { clearInterval(iv); span.textContent = real; }
+  }, 45);
 }
 
 function renderHintPanel(box, panel) {
