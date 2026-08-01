@@ -33,7 +33,6 @@ const DEFAULTS = {
   crt: true,        // scanlines, vignette, flicker
   typewriter: "on", // "on" | "fast" | "off"
   sound: true,
-  haptics: true,
   chips: true,
   textsize: "normal", // "small" | "normal" | "large"
   illustrations: true, // the litho cards (figures.js), drawn inline
@@ -58,7 +57,6 @@ const SETTING_ROWS = [
   ["illustrations", "ILLUSTRATIONS", [true, false], (v) => (v ? "ON" : "OFF")],
   ["typewriter", "TYPEWRITER", ["on", "fast", "off"], (v) => v.toUpperCase()],
   ["sound", "SOUND", [true, false], (v) => (v ? "ON" : "OFF")],
-  ["haptics", "HAPTICS", [true, false], (v) => (v ? "ON" : "OFF")],
   ["chips", "WORD CHIPS", [true, false], (v) => (v ? "ON" : "OFF")],
   ["textsize", "TEXT SIZE", ["small", "normal", "large"], (v) => v.toUpperCase()],
 ];
@@ -101,6 +99,17 @@ document.getElementById("gear").addEventListener("pointerdown", (e) => {
   ensureAudio();
   click();
   toggleSettings();
+});
+// A tap anywhere else dismisses the panel too (CCB) -- RESUME EXPEDITION
+// stays as the labelled way out, but it needn't be the only one. Inside
+// taps never reach the document (the panel stops them here: a setting row
+// re-renders the panel mid-event, so the bubbled target tests as detached);
+// the gear is excluded so its own toggle isn't immediately undone.
+settingsPanel.addEventListener("pointerdown", (e) => e.stopPropagation());
+document.addEventListener("pointerdown", (e) => {
+  if (settingsPanel.classList.contains("hidden")) return;
+  if (e.target.closest && e.target.closest("#gear")) return;
+  toggleSettings(false);
 });
 
 /* ------------------------------------------------------------------- sound */
@@ -230,12 +239,6 @@ function flushTypewriter() {
 output.addEventListener("pointerdown", flushTypewriter);
 
 /* ------------------------------------------------------------------ render */
-
-function haptic(kind) {
-  if (!settings.haptics) return;
-  // Present only inside the iOS shell; the web build silently skips it.
-  try { window.webkit.messageHandlers.haptic.postMessage(kind); } catch (e) {}
-}
 
 let wasGameOver = false;
 let lastWound = null; // the most recent wound's name, for the epitaph's cause line
@@ -459,7 +462,7 @@ function render(payloadJson, opts = {}) {
     print(prefix + ev.text, cls, instant);
     if (ev.channel === "damage") {
       lastWound = (ev.text.split(" - ")[0] || "").trim() || lastWound;
-      haptic("damage"); sounds.damage();
+      sounds.damage();
     }
     if (ev.channel === "blocked") sounds.blocked();
   }
@@ -480,7 +483,7 @@ function render(payloadJson, opts = {}) {
         };
       showFigure("epitaph");
     }
-    if (!s.won) { haptic("death"); sounds.damage(); }
+    if (!s.won) sounds.damage();
     const hinted = s.hints ? ` (${s.hints} hint${s.hints === 1 ? "" : "s"} taken)` : "";
     print((s.won ? "*** You have won. ***" : "*** The tomb keeps you. ***") + hinted, "echo", instant);
     print("(type RESTORE to return to a saved position, or RESTART to begin anew)", "blocked", instant);
