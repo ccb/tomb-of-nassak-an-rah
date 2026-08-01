@@ -59,12 +59,13 @@ def test_suggestions_thin_out_in_the_dark():
 
 
 def test_break_earns_a_chip_only_in_the_halls():
-    """BREAK is a room verb: it rides the bar in the Hall of Warriors and
-    the Hall of Hounds (cylinders, the tank) and nowhere else."""
+    """BREAK is a room verb: it rides the bar exactly where something is
+    breakable -- the cylinders, the tank, the memory lattice -- and
+    nowhere else."""
     app_api.boot(0)
     game = app_api._game
     assert "break" not in json.loads(app_api.command("wait"))["suggestions"]["verbs"]
-    for hall in ("Hall of Warriors", "Hall of Hounds"):
+    for hall in ("Hall of Warriors", "Hall of Hounds", "Hall of Memory"):
         game.relocate(game.player, game.locations[hall])
         verbs = json.loads(app_api.command("wait"))["suggestions"]["verbs"]
         assert "break" in verbs

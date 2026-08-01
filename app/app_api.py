@@ -51,10 +51,11 @@ VERBS = [
 ]
 
 # Verbs that only earn a chip where they have something to bite (CCB):
-# BREAK belongs to the halls -- cylinders in one, the tank in the other.
+# BREAK belongs to the halls -- cylinders, the tank, the memory lattice.
 ROOM_VERBS = {
     "Hall of Warriors": ["break"],
     "Hall of Hounds": ["break"],
+    "Hall of Memory": ["break"],
 }
 
 
