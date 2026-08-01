@@ -502,6 +502,39 @@
   </section>
 
   <section>
+    <div class="slate"><h2>08-L &mdash; THE GLOWSTONE, LIGHTING</h2><span class="kind">WIREFRAME / ONE-WAY</span></div>
+    <div class="screen"><canvas id="glowstone-l" width="640" height="300"></canvas></div>
+    <p class="spec">The first half of 08, one way: a short beat of dark, the switch throws
+       to LIT, the burn steps up to its full warm yellow and HOLDS &mdash; while the
+       ATTENTION gauge fills and stays full. Plays over LIGHT GLOWSTONE, so the card
+       does exactly what the command did.
+       <span class="attach">Attaches: LIGHT GLOWSTONE.</span></p>
+  </section>
+
+  <section>
+    <div class="slate"><h2>08-L-m &mdash; THE GLOWSTONE, LIGHTING (phone)</h2><span class="kind">WIREFRAME / PHONE TWIN</span></div>
+    <div class="screen"><canvas id="glowstone-l-m" width="640" height="720"></canvas></div>
+    <p class="spec">The phone-legible twin of 08-L on 08-m's framing: dark to lit, held.
+       <span class="attach">Selected by terminal.js when the card would render under ~560px.</span></p>
+  </section>
+
+  <section>
+    <div class="slate"><h2>08-D &mdash; THE GLOWSTONE, DOUSING</h2><span class="kind">WIREFRAME / ONE-WAY</span></div>
+    <div class="screen"><canvas id="glowstone-d" width="640" height="300"></canvas></div>
+    <p class="spec">The second half of 08, one way: lit for a beat, the switch throws to
+       DOUSED, the burn steps down to cold lazulite and HOLDS dark while the ATTENTION
+       gauge drains. Plays over DOUSE GLOWSTONE.
+       <span class="attach">Attaches: DOUSE GLOWSTONE.</span></p>
+  </section>
+
+  <section>
+    <div class="slate"><h2>08-D-m &mdash; THE GLOWSTONE, DOUSING (phone)</h2><span class="kind">WIREFRAME / PHONE TWIN</span></div>
+    <div class="screen"><canvas id="glowstone-d-m" width="640" height="720"></canvas></div>
+    <p class="spec">The phone-legible twin of 08-D on 08-m's framing: lit to dark, held.
+       <span class="attach">Selected by terminal.js when the card would render under ~560px.</span></p>
+  </section>
+
+  <section>
     <div class="slate"><h2>08-B &mdash; THE GLOWSTONE, OFF</h2><span class="kind">WIREFRAME / STATE</span></div>
     <div class="screen"><canvas id="glowstone-b" width="640" height="300"></canvas></div>
     <p class="spec">The stone as found: dark, faceted, and equipped with exactly one
@@ -3630,6 +3663,108 @@
     }
     cv.addEventListener("pointerdown", () => { lit = !lit; if (reduced) draw(lastT + 1); });
     clock(t => { if ((t + 40) % 48 === 0) lit = !lit; draw(t); });
+  }
+
+  /* ---- glowOneWay: 08's switch, thrown once (08-L / 08-D + twins) ----
+     The interactive card's draw, verbatim, with the self-demo toggle
+     replaced by a single throw at t=8 that then HOLDS: dark-to-lit for
+     LIGHT GLOWSTONE, lit-to-dark for DOUSE GLOWSTONE. The card does
+     exactly what the command did, once. mobile re-frames per 08-m. */
+  function glowOneWay(cv, ctx, dousing, mobile) {
+    const YELLOW = "#ffd76a";
+    const OUTLINE = [[250,128],[286,84],[338,72],[386,96],[402,142],[376,184],[318,198],[268,176]];
+    const FACETS = [[1,6],[2,5],[0,4],[3,7]];
+    let lit = dousing, k = dousing ? 6 : 0;
+    const PROMPT = dousing ? "> DOUSE GLOWSTONE" : "> LIGHT GLOWSTONE";
+    function draw() {
+      // the glow steps toward its target, one increment per tick -- and
+      // with no toggle coming back, it saturates and holds
+      k = Math.max(0, Math.min(6, k + (lit ? 1 : -1)));
+      ctx.fillStyle = BG; ctx.fillRect(0, 0, cv.width, cv.height);
+      const kk = k / 6;
+      if (mobile) { ctx.save(); ctx.translate(-328, -6); ctx.scale(2, 2); }
+      if (kk > 0) { // the LIGHT: a radial wash of warm yellow, then the rings
+        const halo = ctx.createRadialGradient(324, 138, 8, 324, 138, 84 + k * 26);
+        halo.addColorStop(0, `rgba(255,215,106,${.30 * kk})`);
+        halo.addColorStop(.45, `rgba(255,215,106,${.13 * kk})`);
+        halo.addColorStop(1, "rgba(255,215,106,0)");
+        ctx.fillStyle = halo;
+        ctx.beginPath(); ctx.arc(324, 138, 84 + k * 26, 0, Math.PI * 2); ctx.fill();
+        for (let r = 1; r <= k; r++) { // concentric rings, quantized, fading out
+          ctx.strokeStyle = YELLOW; ctx.globalAlpha = .2 * kk * (1 - r / 8);
+          ctx.beginPath(); ctx.arc(324, 138, 60 + r * 22, 0, Math.PI * 2); ctx.stroke();
+        }
+        ctx.globalAlpha = 1;
+      }
+      const mix = kk > .5 ? YELLOW : kk > 0 ? PH : PH_DIM;
+      ctx.strokeStyle = mix; ctx.lineWidth = 1.6;
+      ctx.shadowColor = mix; ctx.shadowBlur = (4 + k * 4) * (mobile ? 2 : 1);
+      ctx.beginPath();
+      OUTLINE.forEach((p, i) => i ? ctx.lineTo(p[0], p[1]) : ctx.moveTo(p[0], p[1]));
+      ctx.closePath(); ctx.stroke();
+      FACETS.forEach(([a, b]) => { ctx.beginPath();
+        ctx.moveTo(OUTLINE[a][0], OUTLINE[a][1]); ctx.lineTo(OUTLINE[b][0], OUTLINE[b][1]); ctx.stroke(); });
+      // the switch
+      ctx.shadowBlur = 0;
+      ctx.strokeStyle = PH; ctx.strokeRect(270, 238, 100, 22);
+      ctx.fillStyle = lit ? YELLOW : PH_DIM;
+      ctx.fillRect(lit ? 322 : 274, 242, 44, 14);
+      if (mobile) ctx.restore();
+      // the type, at each frame's own size
+      const att = Math.round(kk * 10);
+      const ledger = "ATTENTION: " + "|".repeat(att) + ".".repeat(10 - att);
+      const done = dousing ? kk === 0 : kk === 1;
+      const quip = !done ? "" : dousing
+        ? "THE TOMB GOES BACK TO LISTENING."
+        : "LIGHT IS DEAR; ATTENTION DEARER";
+      ctx.fillStyle = PH_DIM;
+      if (mobile) {
+        ctx.font = "18px ui-monospace, monospace";
+        ctx.textAlign = "right"; ctx.fillText("DOUSED", 196, 500);
+        ctx.textAlign = "left"; ctx.fillText("LIT", 420, 500);
+        ctx.font = "20px ui-monospace, monospace";
+        ctx.fillText(ledger, 24, 620);
+        ctx.textAlign = "right"; ctx.fillText(PROMPT, 616, 620);
+        ctx.textAlign = "left";
+        ctx.fillStyle = dousing ? PH_DIM : YELLOW;
+        ctx.fillText(quip, 24, 40);
+      } else {
+        ctx.font = "11px ui-monospace, monospace";
+        ctx.textAlign = "right"; ctx.fillText("DOUSED", 262, 253);
+        ctx.textAlign = "left"; ctx.fillText("LIT", 378, 253);
+        ctx.fillText(ledger, 18, 288);
+        ctx.textAlign = "right"; ctx.fillText(PROMPT, 622, 288);
+        ctx.textAlign = "left";
+        ctx.fillStyle = dousing ? PH_DIM : YELLOW;
+        ctx.fillText(quip, 18, 24);
+      }
+    }
+    // the throw lands at t=8: a short beat of the starting state first
+    clock(t => { lit = dousing ? t < 8 : t >= 8; draw(); });
+  }
+
+  /* ---------------- 08-L: the glowstone, lighting (one way) ---------------- */
+  {
+    const cv = document.getElementById("glowstone-l"), ctx = cv.getContext("2d");
+    glowOneWay(cv, ctx, false, false);
+  }
+
+  /* ---------------- 08-L-m: the glowstone, lighting (phone twin) ---------------- */
+  {
+    const cv = document.getElementById("glowstone-l-m"), ctx = cv.getContext("2d");
+    glowOneWay(cv, ctx, false, true);
+  }
+
+  /* ---------------- 08-D: the glowstone, dousing (one way) ---------------- */
+  {
+    const cv = document.getElementById("glowstone-d"), ctx = cv.getContext("2d");
+    glowOneWay(cv, ctx, true, false);
+  }
+
+  /* ---------------- 08-D-m: the glowstone, dousing (phone twin) ---------------- */
+  {
+    const cv = document.getElementById("glowstone-d-m"), ctx = cv.getContext("2d");
+    glowOneWay(cv, ctx, true, true);
   }
 
   /* ---------------- 08-B: the glowstone, off ---------------- */

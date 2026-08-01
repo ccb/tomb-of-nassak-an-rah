@@ -161,6 +161,7 @@ def test_every_wired_key_exists_in_the_registry():
                 _walk(it)
     # event-cued keys (not discoverable by walking) + client-cued ones
     wired |= {"seal", "autarch", "autarch-e", "bats", "bats-c", "road", "epitaph",
+              "glowstone-l", "glowstone-d",  # the switch, one way each
               "youth-b", "youth-b-f", "youth-c", "youth-d",  # lit hall (bats/flown), lesson, reprieve
               "flood", "tank-f",  # the burst-tank trigger owns these two
               "tesseract-u"}  # the box's examine, seen by lantern-light
@@ -722,12 +723,12 @@ def test_the_glowstone_card_follows_the_switch():
     g.do_command("search merchant")
     g.do_command("take glowstone")  # found dark: the switch, set to OFF
     assert cap.texts(Channel.FIGURE) == ["glowstone-b"]
-    g.do_command("light glowstone")  # the toggle: the interactive demo
-    assert cap.texts(Channel.FIGURE) == ["glowstone-b", "glowstone"]
+    g.do_command("light glowstone")  # the throw: dark to lit, held (08-L)
+    assert cap.texts(Channel.FIGURE) == ["glowstone-b", "glowstone-l"]
     g.do_command("examine glowstone")  # lit in hand: the burn and the bill
     assert cap.texts(Channel.FIGURE)[-1] == "glowstone-c"
-    g.do_command("douse glowstone")  # going dark is a demo too
-    assert cap.texts(Channel.FIGURE)[-1] == "glowstone"
+    g.do_command("douse glowstone")  # going dark is its own one-way (08-D)
+    assert cap.texts(Channel.FIGURE)[-1] == "glowstone-d"
     g.do_command("examine glowstone")  # and dark in hand is the switch again
     assert cap.texts(Channel.FIGURE)[-1] == "glowstone-b"
 

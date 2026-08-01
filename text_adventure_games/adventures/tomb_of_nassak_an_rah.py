@@ -1130,26 +1130,28 @@ def _deal_item_state_card(game, item):
 
 class LightWithDemo(actions.Light):
     """LIGHT, plus the tutorial: throwing the glowstone's switch is the
-    game's first lesson, so the interactive card (08, both states) plays
-    over the toggle itself -- the state cards (08-B / 08-C) belong to
+    game's first lesson, so the one-way lighting card (08-L: dark, the
+    throw, lit and HELD) plays over the toggle itself -- the card does
+    exactly what the command did. The state cards (08-B / 08-C) belong to
     take and examine. The ulfire lantern instead shows the plate for the
     state it lands in (33 lit), so LIGHT reads as turning it on."""
 
     def apply_effects(self):
         if self.character is self.game.player and self.item.name == "glowstone":
-            self.game.show_figure("glowstone", force=True)
+            self.game.show_figure("glowstone-l", force=True)
         super().apply_effects()
         if self.character is self.game.player and self.item.name == "ulfire lantern":
             _deal_item_state_card(self.game, self.item)
 
 
 class DouseWithDemo(actions.Douse):
-    """DOUSE, with the same demo card as :class:`LightWithDemo`; the ulfire
-    lantern shows its unlit plate (33-B) for the state DOUSE leaves it in."""
+    """DOUSE, with the mirror card (08-D: lit, the throw, dark and HELD);
+    the ulfire lantern shows its unlit plate (33-B) for the state DOUSE
+    leaves it in."""
 
     def apply_effects(self):
         if self.character is self.game.player and self.item.name == "glowstone":
-            self.game.show_figure("glowstone", force=True)
+            self.game.show_figure("glowstone-d", force=True)
         super().apply_effects()
         if self.character is self.game.player and self.item.name == "ulfire lantern":
             _deal_item_state_card(self.game, self.item)
