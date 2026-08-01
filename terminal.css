@@ -401,6 +401,9 @@ body.no-crt #bootscreen::after { display: none; }
 .hintpanel ol.rungs { margin: 0 0 .35rem; padding-left: 1.5rem; }
 .hintpanel li { margin: .18rem 0; }
 .hintpanel li .cipher { color: #2f7cab; }
+/* the decrypt cascade's three regions: read, burning, still enciphered */
+.hintpanel li .deciphered { color: var(--phosphor); }
+.hintpanel li .decipher-front { color: #ffd76a; text-shadow: 0 0 6px rgba(255,215,106,.5); }
 .hintpanel li.locked { opacity: .45; }
 .hintpanel .decrypt {
   background: transparent;
