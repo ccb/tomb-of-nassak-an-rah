@@ -58,6 +58,19 @@ def test_suggestions_thin_out_in_the_dark():
     assert room_only_nouns == []  # nothing of the room is offered unseen
 
 
+def test_break_earns_a_chip_only_in_the_halls():
+    """BREAK is a room verb: it rides the bar in the Hall of Warriors and
+    the Hall of Hounds (cylinders, the tank) and nowhere else."""
+    app_api.boot(0)
+    game = app_api._game
+    assert "break" not in json.loads(app_api.command("wait"))["suggestions"]["verbs"]
+    for hall in ("Hall of Warriors", "Hall of Hounds"):
+        game.relocate(game.player, game.locations[hall])
+        verbs = json.loads(app_api.command("wait"))["suggestions"]["verbs"]
+        assert "break" in verbs
+        assert verbs.index("break") + 1 == verbs.index("attack")  # beside ATTACK
+
+
 def test_revealed_contents_join_the_chips_only_once_seen():
     """Items inside things reach the noun chips exactly when the player could
     reach them -- after the SEARCH or OPEN that reveals them, never before

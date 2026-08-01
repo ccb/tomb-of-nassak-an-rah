@@ -50,6 +50,13 @@ VERBS = [
     "wait",
 ]
 
+# Verbs that only earn a chip where they have something to bite (CCB):
+# BREAK belongs to the halls -- cylinders in one, the tank in the other.
+ROOM_VERBS = {
+    "Hall of Warriors": ["break"],
+    "Hall of Hounds": ["break"],
+}
+
 
 class _LocalStorageStore:
     """The browser's save store: SLOTS in ``localStorage`` (design §2)."""
@@ -148,8 +155,14 @@ def _suggestions():
         if n not in seen:
             seen.add(n)
             deduped.append(n)
+    verbs = list(VERBS)
+    extra = ROOM_VERBS.get(loc.name)
+    if extra:
+        # Slot room verbs beside ATTACK, with the other rough handling.
+        at = verbs.index("attack")
+        verbs[at:at] = extra
     return {
-        "verbs": VERBS,
+        "verbs": verbs,
         "nouns": deduped,
         "exits": sorted(loc.connections.keys()),
     }
