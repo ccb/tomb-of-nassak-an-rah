@@ -532,27 +532,28 @@ def test_burning_the_mystic_deals_the_cleanse_then_the_aftermath():
     assert "mystic-b" not in cap.texts(Channel.FIGURE)
 
 
-def test_the_cylinder_card_names_the_first_break():
-    """The Hall of Warriors deals 06-B while all four stand; the FIRST break
-    earns that colour's own plate (06-C/A/V/O); any deeper wreckage falls
-    back to the generic scavenged plate (06)."""
-    for colour, key in (
-        ("cerulean", "cyl-c"),
-        ("amber", "cyl-a"),
-        ("viridian", "cyl-v"),
-        ("orange", "cyl-o"),
-    ):
-        g, _cap = _game()
-        warriors = g.locations["Hall of Warriors"]
-        fig = warriors.items["cylinders"].get_property("figure")
-        assert fig(g) == "cylinders-b"  # as the tombwrights left it
-        g.relocate(g.player, warriors)
-        g.do_command(f"break {colour} cylinder")
-        assert fig(g) == key  # the first break gets its own plate
-        g.do_command(
-            "break viridian cylinder" if colour != "viridian" else "break amber cylinder"
-        )
-        assert fig(g) == "cylinders"  # deeper wreckage: the generic plate
+def test_the_cylinder_card_tracks_every_combination():
+    """The Hall of Warriors deals 06-B while all four stand; any other
+    wreckage keys the plate by exactly which colours are down, in canon
+    order (cyl-c ... cyl-cavo) -- all sixteen states, each a real card."""
+    import itertools
+
+    import gen_figures
+
+    registry = set(gen_figures.generate())
+    order = (("cerulean", "c"), ("amber", "a"), ("viridian", "v"), ("orange", "o"))
+    for r in range(5):
+        for downs in itertools.combinations(order, r):
+            g, _cap = _game()
+            warriors = g.locations["Hall of Warriors"]
+            fig = warriors.items["cylinders"].get_property("figure")
+            g.relocate(g.player, warriors)
+            for colour, _l in downs:
+                g.do_command(f"break {colour} cylinder")
+            letters = "".join(l for c, l in order if (c, l) in downs)
+            key = "cyl-" + letters if letters else "cylinders-b"
+            assert fig(g) == key  # the plate names the exact wreckage
+            assert key in registry and key + "-m" in registry
 
 
 def test_breaking_a_cylinder_deals_its_plate_on_the_figure_channel():
@@ -564,12 +565,12 @@ def test_breaking_a_cylinder_deals_its_plate_on_the_figure_channel():
         g.relocate(g.player, g.locations["Hall of Warriors"])
         g.do_command(f"break {colour} cylinder")
         assert key in cap.texts(Channel.FIGURE)  # the plate rode the break
-    # A deeper break falls back to the generic plate.
+    # A deeper break deals that exact combination's plate.
     g, cap = _game()
     g.relocate(g.player, g.locations["Hall of Warriors"])
     g.do_command("break amber cylinder")
     g.do_command("break viridian cylinder")
-    assert "cylinders" in cap.texts(Channel.FIGURE)
+    assert "cyl-av" in cap.texts(Channel.FIGURE)
 
 
 def test_opening_a_canopic_jar_deals_its_card():

@@ -98,6 +98,17 @@
   .spec { color: var(--ph-dim); font-size: .8rem; max-width: 62ch; }
   .spec b { color: var(--ph); font-weight: 400; }
   .spec .attach { color: var(--fungus); }
+  /* the cylinder combinator: four SEALED/BURST switches, one state on stage */
+  .bench { display: flex; flex-wrap: wrap; gap: .6rem; align-items: center; }
+  .bench .chip-btn { background: transparent; font-family: inherit; }
+  .bench .chip-btn:hover { background: var(--ph-dim); color: var(--bg); }
+  .bench .chip-btn.burst { background: var(--fungus); border-color: var(--fungus); color: var(--bg); }
+  .bench .sw {
+    display: inline-block; width: .6em; height: .6em; border-radius: 50%;
+    margin-right: .45em; vertical-align: baseline;
+  }
+  .benchkey { color: var(--ph-dim); font-size: .78rem; letter-spacing: .08em; }
+  section.cyl-off { display: none; }
   @media (prefers-reduced-motion: reduce) {
     .screen::after { animation: none; }
   }
@@ -284,6 +295,22 @@
        <span class="attach">Selected by terminal.js when the card would render under ~560px.</span></p>
   </section>
 
+  <section id="fig-cyl-bench">
+    <div class="slate"><h2>06 &mdash; THE CYLINDER COMBINATOR</h2><span class="kind">PROOFING BENCH / 16 STATES</span></div>
+    <div class="bench" id="cylbench" role="group" aria-label="Cylinder state switches">
+      <button class="chip-btn" data-cyl="c" data-name="CERULEAN" aria-pressed="false"><i class="sw" style="background:#4db8ff"></i><span>CERULEAN &mdash; SEALED</span></button>
+      <button class="chip-btn" data-cyl="a" data-name="AMBER" aria-pressed="false"><i class="sw" style="background:#ffd06a"></i><span>AMBER &mdash; SEALED</span></button>
+      <button class="chip-btn" data-cyl="v" data-name="VIRIDIAN" aria-pressed="false"><i class="sw" style="background:#4ee0a8"></i><span>VIRIDIAN &mdash; SEALED</span></button>
+      <button class="chip-btn" data-cyl="o" data-name="ORANGE" aria-pressed="false"><i class="sw" style="background:#ff9a3c"></i><span>ORANGE &mdash; SEALED</span></button>
+      <span class="benchkey" id="cylkey"></span>
+    </div>
+    <p class="spec">Four switches, sixteen states: flip any colour to BURST and the matching
+       plate &mdash; and its phone twin &mdash; takes the stage below, while the rest of the
+       family stays off. This is exactly the card the Hall of Warriors deals for that
+       wreckage, so the whole break tree can be proofed without smashing anything.
+       <span class="attach">Bench only; the game picks by room state.</span></p>
+  </section>
+
   <section>
     <div class="slate"><h2>06-B &mdash; THE BURIAL CYLINDERS, INTACT</h2><span class="kind">LITHO / VARIANT</span></div>
     <div class="screen">
@@ -303,30 +330,6 @@
        desktop drawing verbatim, scaled 1.6x with the slack between cylinders reclaimed, so
        four guards still stand shoulder to shoulder. The title, class line, cycling callout,
        station names, and footer re-set in big type around them.
-       <span class="attach">Selected by terminal.js when the card would render under ~560px.</span></p>
-  </section>
-
-  <section>
-    <div class="slate"><h2>06 &mdash; THE BURIAL CYLINDERS</h2><span class="kind">LITHO / HALL OF WARRIORS</span></div>
-    <div class="screen">
-      <svg id="cylinders" viewBox="0 0 640 400" aria-label="The four burial cylinders"></svg>
-    </div>
-    <p class="spec">The factory fallback, mid-scavenge: canon stations (cerulean, amber,
-       viridian, orange), the first two down in their own-coloured spills -- blade and
-       mask claimed -- while the boots still grip their plinth and the igniter waits in
-       the bloom. Callouts cycle the kit, kept and lost alike.
-       <span class="attach">Attaches: the Hall of Warriors with two or more down;
-       EXAMINE CYLINDERS.</span></p>
-  </section>
-
-  <section>
-    <div class="slate"><h2>06-m &mdash; THE BURIAL CYLINDERS (phone)</h2><span class="kind">LITHO / PHONE TWIN</span></div>
-    <div class="screen">
-      <svg id="cylinders-m" viewBox="0 0 640 720" aria-label="The four burial cylinders (phone)"></svg>
-    </div>
-    <p class="spec">The phone-legible twin of 06, stamped from the portrait mold: four
-       stations abreast at 1.6x, cerulean and amber down in their spills, the type re-set
-       big around the row.
        <span class="attach">Selected by terminal.js when the card would render under ~560px.</span></p>
   </section>
 
@@ -411,6 +414,246 @@
     </div>
     <p class="spec">The phone-legible twin of 06-O, stamped from the portrait mold; the
        vented bloom's spores climb at 1.6x like everything else.
+       <span class="attach">Selected by terminal.js when the card would render under ~560px.</span></p>
+  </section>
+
+  <section>
+    <div class="slate"><h2>06-CA &mdash; CERULEAN AND AMBER DOWN</h2><span class="kind">LITHO / SECOND BREAK</span></div>
+    <div class="screen">
+      <svg id="cyl-ca" viewBox="0 0 640 400" aria-label="The burial cylinders, cerulean and amber broken"></svg>
+    </div>
+    <p class="spec">Blade and mask both claimed, each colour down in its own spill; the boots
+       and the igniter's bloom still under glass. <span class="attach">Attaches: the Hall of
+       Warriors, exactly cerulean and amber broken.</span></p>
+  </section>
+
+  <section>
+    <div class="slate"><h2>06-CA-m &mdash; CERULEAN AND AMBER DOWN (phone)</h2><span class="kind">LITHO / PHONE TWIN</span></div>
+    <div class="screen">
+      <svg id="cyl-ca-m" viewBox="0 0 640 720" aria-label="The burial cylinders, cerulean and amber broken (phone)"></svg>
+    </div>
+    <p class="spec">The phone-legible twin of 06-CA, stamped from the portrait mold.
+       <span class="attach">Selected by terminal.js when the card would render under ~560px.</span></p>
+  </section>
+
+  <section>
+    <div class="slate"><h2>06-CV &mdash; CERULEAN AND VIRIDIAN DOWN</h2><span class="kind">LITHO / SECOND BREAK</span></div>
+    <div class="screen">
+      <svg id="cyl-cv" viewBox="0 0 640 400" aria-label="The burial cylinders, cerulean and viridian broken"></svg>
+    </div>
+    <p class="spec">Blade and boots taken, the respirator left sealed beside a bloom that has
+       not been let out yet. <span class="attach">Attaches: the Hall of Warriors, exactly
+       cerulean and viridian broken.</span></p>
+  </section>
+
+  <section>
+    <div class="slate"><h2>06-CV-m &mdash; CERULEAN AND VIRIDIAN DOWN (phone)</h2><span class="kind">LITHO / PHONE TWIN</span></div>
+    <div class="screen">
+      <svg id="cyl-cv-m" viewBox="0 0 640 720" aria-label="The burial cylinders, cerulean and viridian broken (phone)"></svg>
+    </div>
+    <p class="spec">The phone-legible twin of 06-CV, stamped from the portrait mold.
+       <span class="attach">Selected by terminal.js when the card would render under ~560px.</span></p>
+  </section>
+
+  <section>
+    <div class="slate"><h2>06-CO &mdash; CERULEAN AND ORANGE DOWN</h2><span class="kind">LITHO / SECOND BREAK</span></div>
+    <div class="screen">
+      <svg id="cyl-co" viewBox="0 0 640 400" aria-label="The burial cylinders, cerulean and orange broken"></svg>
+    </div>
+    <p class="spec">A blade in hand and the bloom in the air &mdash; the orange one vented,
+       spores climbing off the spill &mdash; while the respirator waits sealed in the amber.
+       <span class="attach">Attaches: the Hall of Warriors, exactly cerulean and orange
+       broken.</span></p>
+  </section>
+
+  <section>
+    <div class="slate"><h2>06-CO-m &mdash; CERULEAN AND ORANGE DOWN (phone)</h2><span class="kind">LITHO / PHONE TWIN</span></div>
+    <div class="screen">
+      <svg id="cyl-co-m" viewBox="0 0 640 720" aria-label="The burial cylinders, cerulean and orange broken (phone)"></svg>
+    </div>
+    <p class="spec">The phone-legible twin of 06-CO, stamped from the portrait mold.
+       <span class="attach">Selected by terminal.js when the card would render under ~560px.</span></p>
+  </section>
+
+  <section>
+    <div class="slate"><h2>06-AV &mdash; AMBER AND VIRIDIAN DOWN</h2><span class="kind">LITHO / SECOND BREAK</span></div>
+    <div class="screen">
+      <svg id="cyl-av" viewBox="0 0 640 400" aria-label="The burial cylinders, amber and viridian broken"></svg>
+    </div>
+    <p class="spec">Masked and magnetized: the manual's order, then the boots. The blade
+       still sleeps under cerulean gel and the bloom under orange.
+       <span class="attach">Attaches: the Hall of Warriors, exactly amber and viridian
+       broken.</span></p>
+  </section>
+
+  <section>
+    <div class="slate"><h2>06-AV-m &mdash; AMBER AND VIRIDIAN DOWN (phone)</h2><span class="kind">LITHO / PHONE TWIN</span></div>
+    <div class="screen">
+      <svg id="cyl-av-m" viewBox="0 0 640 720" aria-label="The burial cylinders, amber and viridian broken (phone)"></svg>
+    </div>
+    <p class="spec">The phone-legible twin of 06-AV, stamped from the portrait mold.
+       <span class="attach">Selected by terminal.js when the card would render under ~560px.</span></p>
+  </section>
+
+  <section>
+    <div class="slate"><h2>06-AO &mdash; AMBER AND ORANGE DOWN</h2><span class="kind">LITHO / SECOND BREAK</span></div>
+    <div class="screen">
+      <svg id="cyl-ao" viewBox="0 0 640 400" aria-label="The burial cylinders, amber and orange broken"></svg>
+    </div>
+    <p class="spec">Mask first, then the vent: the one order of operations the bloom
+       respects. Blade and boots still stand sealed.
+       <span class="attach">Attaches: the Hall of Warriors, exactly amber and orange
+       broken.</span></p>
+  </section>
+
+  <section>
+    <div class="slate"><h2>06-AO-m &mdash; AMBER AND ORANGE DOWN (phone)</h2><span class="kind">LITHO / PHONE TWIN</span></div>
+    <div class="screen">
+      <svg id="cyl-ao-m" viewBox="0 0 640 720" aria-label="The burial cylinders, amber and orange broken (phone)"></svg>
+    </div>
+    <p class="spec">The phone-legible twin of 06-AO, stamped from the portrait mold.
+       <span class="attach">Selected by terminal.js when the card would render under ~560px.</span></p>
+  </section>
+
+  <section>
+    <div class="slate"><h2>06-VO &mdash; VIRIDIAN AND ORANGE DOWN</h2><span class="kind">LITHO / SECOND BREAK</span></div>
+    <div class="screen">
+      <svg id="cyl-vo" viewBox="0 0 640 400" aria-label="The burial cylinders, viridian and orange broken"></svg>
+    </div>
+    <p class="spec">Boots and a bloom, and not a mask between them &mdash; the orange vented
+       with the respirator still under amber glass. <span class="attach">Attaches: the Hall
+       of Warriors, exactly viridian and orange broken.</span></p>
+  </section>
+
+  <section>
+    <div class="slate"><h2>06-VO-m &mdash; VIRIDIAN AND ORANGE DOWN (phone)</h2><span class="kind">LITHO / PHONE TWIN</span></div>
+    <div class="screen">
+      <svg id="cyl-vo-m" viewBox="0 0 640 720" aria-label="The burial cylinders, viridian and orange broken (phone)"></svg>
+    </div>
+    <p class="spec">The phone-legible twin of 06-VO, stamped from the portrait mold.
+       <span class="attach">Selected by terminal.js when the card would render under ~560px.</span></p>
+  </section>
+
+  <section>
+    <div class="slate"><h2>06-CAV &mdash; ONLY ORANGE STANDS</h2><span class="kind">LITHO / THIRD BREAK</span></div>
+    <div class="screen">
+      <svg id="cyl-cav" viewBox="0 0 640 400" aria-label="The burial cylinders, only the orange still sealed"></svg>
+    </div>
+    <p class="spec">Three stripped &mdash; blade, mask, boots &mdash; and one glass left, the
+       one with the igniter and the bloom veining behind it.
+       <span class="attach">Attaches: the Hall of Warriors, only the orange still
+       sealed.</span></p>
+  </section>
+
+  <section>
+    <div class="slate"><h2>06-CAV-m &mdash; ONLY ORANGE STANDS (phone)</h2><span class="kind">LITHO / PHONE TWIN</span></div>
+    <div class="screen">
+      <svg id="cyl-cav-m" viewBox="0 0 640 720" aria-label="The burial cylinders, only the orange still sealed (phone)"></svg>
+    </div>
+    <p class="spec">The phone-legible twin of 06-CAV, stamped from the portrait mold.
+       <span class="attach">Selected by terminal.js when the card would render under ~560px.</span></p>
+  </section>
+
+  <section>
+    <div class="slate"><h2>06-CAO &mdash; ONLY VIRIDIAN STANDS</h2><span class="kind">LITHO / THIRD BREAK</span></div>
+    <div class="screen">
+      <svg id="cyl-cao" viewBox="0 0 640 400" aria-label="The burial cylinders, only the viridian still sealed"></svg>
+    </div>
+    <p class="spec">Only the boots keep their post, their guard still anchored at attention;
+       the orange lies vented, so the air is already an argument.
+       <span class="attach">Attaches: the Hall of Warriors, only the viridian still
+       sealed.</span></p>
+  </section>
+
+  <section>
+    <div class="slate"><h2>06-CAO-m &mdash; ONLY VIRIDIAN STANDS (phone)</h2><span class="kind">LITHO / PHONE TWIN</span></div>
+    <div class="screen">
+      <svg id="cyl-cao-m" viewBox="0 0 640 720" aria-label="The burial cylinders, only the viridian still sealed (phone)"></svg>
+    </div>
+    <p class="spec">The phone-legible twin of 06-CAO, stamped from the portrait mold.
+       <span class="attach">Selected by terminal.js when the card would render under ~560px.</span></p>
+  </section>
+
+  <section>
+    <div class="slate"><h2>06-CVO &mdash; ONLY AMBER STANDS</h2><span class="kind">LITHO / THIRD BREAK</span></div>
+    <div class="screen">
+      <svg id="cyl-cvo" viewBox="0 0 640 400" aria-label="The burial cylinders, only the amber still sealed"></svg>
+    </div>
+    <p class="spec">The respirator still sealed while the bloom drifts loose beside it &mdash;
+       the one state where the glass is the punchline.
+       <span class="attach">Attaches: the Hall of Warriors, only the amber still
+       sealed.</span></p>
+  </section>
+
+  <section>
+    <div class="slate"><h2>06-CVO-m &mdash; ONLY AMBER STANDS (phone)</h2><span class="kind">LITHO / PHONE TWIN</span></div>
+    <div class="screen">
+      <svg id="cyl-cvo-m" viewBox="0 0 640 720" aria-label="The burial cylinders, only the amber still sealed (phone)"></svg>
+    </div>
+    <p class="spec">The phone-legible twin of 06-CVO, stamped from the portrait mold.
+       <span class="attach">Selected by terminal.js when the card would render under ~560px.</span></p>
+  </section>
+
+  <section>
+    <div class="slate"><h2>06-AVO &mdash; ONLY CERULEAN STANDS</h2><span class="kind">LITHO / THIRD BREAK</span></div>
+    <div class="screen">
+      <svg id="cyl-avo" viewBox="0 0 640 400" aria-label="The burial cylinders, only the cerulean still sealed"></svg>
+    </div>
+    <p class="spec">Everything claimed but the blade, still shouldered by its sealed guard
+       while the other three slump in their spills.
+       <span class="attach">Attaches: the Hall of Warriors, only the cerulean still
+       sealed.</span></p>
+  </section>
+
+  <section>
+    <div class="slate"><h2>06-AVO-m &mdash; ONLY CERULEAN STANDS (phone)</h2><span class="kind">LITHO / PHONE TWIN</span></div>
+    <div class="screen">
+      <svg id="cyl-avo-m" viewBox="0 0 640 720" aria-label="The burial cylinders, only the cerulean still sealed (phone)"></svg>
+    </div>
+    <p class="spec">The phone-legible twin of 06-AVO, stamped from the portrait mold.
+       <span class="attach">Selected by terminal.js when the card would render under ~560px.</span></p>
+  </section>
+
+  <section>
+    <div class="slate"><h2>06-CAVO &mdash; ALL FOUR DOWN</h2><span class="kind">LITHO / ALL FOUR</span></div>
+    <div class="screen">
+      <svg id="cyl-cavo" viewBox="0 0 640 400" aria-label="The burial cylinders, all four broken"></svg>
+    </div>
+    <p class="spec">Nothing left sealed: four stumps, four spills, the bloom airborne over
+       the orange wreck, the guards keeping only their posture.
+       <span class="attach">Attaches: the Hall of Warriors, all four broken.</span></p>
+  </section>
+
+  <section>
+    <div class="slate"><h2>06-CAVO-m &mdash; ALL FOUR DOWN (phone)</h2><span class="kind">LITHO / PHONE TWIN</span></div>
+    <div class="screen">
+      <svg id="cyl-cavo-m" viewBox="0 0 640 720" aria-label="The burial cylinders, all four broken (phone)"></svg>
+    </div>
+    <p class="spec">The phone-legible twin of 06-CAVO, stamped from the portrait mold.
+       <span class="attach">Selected by terminal.js when the card would render under ~560px.</span></p>
+  </section>
+
+  <section>
+    <div class="slate"><h2>06 &mdash; THE BURIAL CYLINDERS</h2><span class="kind">LITHO / HALL OF WARRIORS</span></div>
+    <div class="screen">
+      <svg id="cylinders" viewBox="0 0 640 400" aria-label="The four burial cylinders"></svg>
+    </div>
+    <p class="spec">The factory fallback, mid-scavenge: canon stations (cerulean, amber,
+       viridian, orange), the first two down in their own-coloured spills -- blade and
+       mask claimed -- while the boots still grip their plinth and the igniter waits in
+       the bloom. Callouts cycle the kit, kept and lost alike.
+       <span class="attach">Retired from the hall (every combination now has its own
+       plate, 06-CA and kin); kept as the mold's reference stamping.</span></p>
+  </section>
+
+  <section>
+    <div class="slate"><h2>06-m &mdash; THE BURIAL CYLINDERS (phone)</h2><span class="kind">LITHO / PHONE TWIN</span></div>
+    <div class="screen">
+      <svg id="cylinders-m" viewBox="0 0 640 720" aria-label="The four burial cylinders (phone)"></svg>
+    </div>
+    <p class="spec">The phone-legible twin of 06, stamped from the portrait mold: four
+       stations abreast at 1.6x, cerulean and amber down in their spills, the type re-set
+       big around the row.
        <span class="attach">Selected by terminal.js when the card would render under ~560px.</span></p>
   </section>
 
@@ -2649,7 +2892,8 @@
     const AMBERH = "#ffd06a", VIRIDIANH = "#4ee0a8";
     el(svg, "rect", { x: 0, y: 0, width: 640, height: 400, fill: BG });
     el(svg, "line", { x1: 16, y1: 34, x2: 624, y2: 34, stroke: PH_DIM });
-    const hdr = label(svg, 16, 24, 13, PH_BRIGHT);
+    // The longest combination titles would run into the class line at 13px.
+    const hdr = label(svg, 16, 24, hdrText.length > 40 ? 11 : 13, PH_BRIGHT);
     const cls = label(svg, 624, 24, 10, PH_DIM); cls.setAttribute("text-anchor", "end");
     cls.textContent = "GUARD ISSUE / " +
       ["INTACT", "ONE BURST", "TWO BURST", "THREE BURST", "ALL BURST"][broken.length];
@@ -2798,7 +3042,8 @@
     const AMBERH = "#ffd06a", VIRIDIANH = "#4ee0a8";
     el(svg, "rect", { x: 0, y: 0, width: 640, height: 720, fill: BG });
     el(svg, "line", { x1: 20, y1: 44, x2: 620, y2: 44, stroke: PH_DIM });
-    const hdr = label(svg, 20, 34, hdrText.length > 30 ? 22 : 26, PH_BRIGHT);
+    const hdr = label(svg, 20, 34,
+      hdrText.length > 40 ? 18 : hdrText.length > 30 ? 22 : 26, PH_BRIGHT);
     const cls = label(svg, 20, 70, 16, PH_DIM);
     cls.textContent = "GUARD ISSUE / " +
       ["INTACT", "ONE BURST", "TWO BURST", "THREE BURST", "ALL BURST"][broken.length];
@@ -3003,6 +3248,186 @@
     cylCardM(svg, "om", ["ORANGE"],
       "THE BURIAL CYLINDERS, ORANGE DOWN",
       "ORANGE FIRST.", "THE BLOOM THANKS YOU FOR YOUR LUNGS.");
+  }
+
+  /* ---- 06 deeper stampings (CCB): the rest of the break tree, every pair,
+     triple, and the cleaned-out hall, so the Hall of Warriors always deals
+     the exact wreckage. Keyed cyl-<letters down>, canon order c,a,v,o. ---- */
+
+  /* ---------------- 06-CA: cerulean and amber down ---------------- */
+  {
+    const svg = document.getElementById("cyl-ca");
+    cylCard(svg, "ca", ["CERULEAN", "AMBER"],
+      "THE BURIAL CYLINDERS, CERULEAN AND AMBER DOWN",
+      "BLADE AND MASK CLAIMED. THE MANUAL NODS ALONG.");
+  }
+
+  /* ---------------- 06-CA-m: cerulean and amber down (phone twin) ---------------- */
+  {
+    const svg = document.getElementById("cyl-ca-m");
+    cylCardM(svg, "cam", ["CERULEAN", "AMBER"],
+      "THE BURIAL CYLINDERS, CERULEAN AND AMBER DOWN",
+      "BLADE AND MASK CLAIMED.", "THE MANUAL NODS ALONG.");
+  }
+
+  /* ---------------- 06-CV: cerulean and viridian down ---------------- */
+  {
+    const svg = document.getElementById("cyl-cv");
+    cylCard(svg, "cv", ["CERULEAN", "VIRIDIAN"],
+      "THE BURIAL CYLINDERS, CERULEAN AND VIRIDIAN DOWN",
+      "BLADE AND BOOTS. BREATHING REMAINS AN AMBITION.");
+  }
+
+  /* ---------------- 06-CV-m: cerulean and viridian down (phone twin) ---------------- */
+  {
+    const svg = document.getElementById("cyl-cv-m");
+    cylCardM(svg, "cvm", ["CERULEAN", "VIRIDIAN"],
+      "THE BURIAL CYLINDERS, CERULEAN AND VIRIDIAN DOWN",
+      "BLADE AND BOOTS.", "BREATHING REMAINS AN AMBITION.");
+  }
+
+  /* ---------------- 06-CO: cerulean and orange down ---------------- */
+  {
+    const svg = document.getElementById("cyl-co");
+    cylCard(svg, "co", ["CERULEAN", "ORANGE"],
+      "THE BURIAL CYLINDERS, CERULEAN AND ORANGE DOWN",
+      "A BLADE IN HAND, A BLOOM IN THE AIR.");
+  }
+
+  /* ---------------- 06-CO-m: cerulean and orange down (phone twin) ---------------- */
+  {
+    const svg = document.getElementById("cyl-co-m");
+    cylCardM(svg, "com", ["CERULEAN", "ORANGE"],
+      "THE BURIAL CYLINDERS, CERULEAN AND ORANGE DOWN",
+      "A BLADE IN HAND,", "A BLOOM IN THE AIR.");
+  }
+
+  /* ---------------- 06-AV: amber and viridian down ---------------- */
+  {
+    const svg = document.getElementById("cyl-av");
+    cylCard(svg, "av", ["AMBER", "VIRIDIAN"],
+      "THE BURIAL CYLINDERS, AMBER AND VIRIDIAN DOWN",
+      "MASKED AND MAGNETIZED. THE BLADE STILL SLEEPS.");
+  }
+
+  /* ---------------- 06-AV-m: amber and viridian down (phone twin) ---------------- */
+  {
+    const svg = document.getElementById("cyl-av-m");
+    cylCardM(svg, "avm", ["AMBER", "VIRIDIAN"],
+      "THE BURIAL CYLINDERS, AMBER AND VIRIDIAN DOWN",
+      "MASKED AND MAGNETIZED.", "THE BLADE STILL SLEEPS.");
+  }
+
+  /* ---------------- 06-AO: amber and orange down ---------------- */
+  {
+    const svg = document.getElementById("cyl-ao");
+    cylCard(svg, "ao", ["AMBER", "ORANGE"],
+      "THE BURIAL CYLINDERS, AMBER AND ORANGE DOWN",
+      "MASK FIRST, THEN THE VENT. SOMEBODY READ THE MANUAL.");
+  }
+
+  /* ---------------- 06-AO-m: amber and orange down (phone twin) ---------------- */
+  {
+    const svg = document.getElementById("cyl-ao-m");
+    cylCardM(svg, "aom", ["AMBER", "ORANGE"],
+      "THE BURIAL CYLINDERS, AMBER AND ORANGE DOWN",
+      "MASK FIRST, THEN THE VENT.", "SOMEBODY READ THE MANUAL.");
+  }
+
+  /* ---------------- 06-VO: viridian and orange down ---------------- */
+  {
+    const svg = document.getElementById("cyl-vo");
+    cylCard(svg, "vo", ["VIRIDIAN", "ORANGE"],
+      "THE BURIAL CYLINDERS, VIRIDIAN AND ORANGE DOWN",
+      "BOOTS AND A BLOOM, AND NOT A MASK BETWEEN THEM.");
+  }
+
+  /* ---------------- 06-VO-m: viridian and orange down (phone twin) ---------------- */
+  {
+    const svg = document.getElementById("cyl-vo-m");
+    cylCardM(svg, "vom", ["VIRIDIAN", "ORANGE"],
+      "THE BURIAL CYLINDERS, VIRIDIAN AND ORANGE DOWN",
+      "BOOTS AND A BLOOM,", "AND NOT A MASK BETWEEN THEM.");
+  }
+
+  /* ---------------- 06-CAV: only orange stands ---------------- */
+  {
+    const svg = document.getElementById("cyl-cav");
+    cylCard(svg, "cav", ["CERULEAN", "AMBER", "VIRIDIAN"],
+      "THE BURIAL CYLINDERS, ONLY ORANGE STANDS",
+      "THREE STRIPPED. THE BLOOM WAITS ITS TURN.");
+  }
+
+  /* ---------------- 06-CAV-m: only orange stands (phone twin) ---------------- */
+  {
+    const svg = document.getElementById("cyl-cav-m");
+    cylCardM(svg, "cavm", ["CERULEAN", "AMBER", "VIRIDIAN"],
+      "THE BURIAL CYLINDERS, ONLY ORANGE STANDS",
+      "THREE STRIPPED.", "THE BLOOM WAITS ITS TURN.");
+  }
+
+  /* ---------------- 06-CAO: only viridian stands ---------------- */
+  {
+    const svg = document.getElementById("cyl-cao");
+    cylCard(svg, "cao", ["CERULEAN", "AMBER", "ORANGE"],
+      "THE BURIAL CYLINDERS, ONLY VIRIDIAN STANDS",
+      "ONLY THE BOOTS KEEP THEIR POST. THE AIR DISAGREES.");
+  }
+
+  /* ---------------- 06-CAO-m: only viridian stands (phone twin) ---------------- */
+  {
+    const svg = document.getElementById("cyl-cao-m");
+    cylCardM(svg, "caom", ["CERULEAN", "AMBER", "ORANGE"],
+      "THE BURIAL CYLINDERS, ONLY VIRIDIAN STANDS",
+      "ONLY THE BOOTS KEEP THEIR POST.", "THE AIR DISAGREES.");
+  }
+
+  /* ---------------- 06-CVO: only amber stands ---------------- */
+  {
+    const svg = document.getElementById("cyl-cvo");
+    cylCard(svg, "cvo", ["CERULEAN", "VIRIDIAN", "ORANGE"],
+      "THE BURIAL CYLINDERS, ONLY AMBER STANDS",
+      "THE MASK STILL SEALED, THE BLOOM ALREADY LOOSE. TAKE THE HINT.");
+  }
+
+  /* ---------------- 06-CVO-m: only amber stands (phone twin) ---------------- */
+  {
+    const svg = document.getElementById("cyl-cvo-m");
+    cylCardM(svg, "cvom", ["CERULEAN", "VIRIDIAN", "ORANGE"],
+      "THE BURIAL CYLINDERS, ONLY AMBER STANDS",
+      "MASK SEALED, BLOOM LOOSE.", "TAKE THE HINT.");
+  }
+
+  /* ---------------- 06-AVO: only cerulean stands ---------------- */
+  {
+    const svg = document.getElementById("cyl-avo");
+    cylCard(svg, "avo", ["AMBER", "VIRIDIAN", "ORANGE"],
+      "THE BURIAL CYLINDERS, ONLY CERULEAN STANDS",
+      "EVERYTHING CLAIMED BUT THE BLADE. IT CAN WAIT. IT HAS.");
+  }
+
+  /* ---------------- 06-AVO-m: only cerulean stands (phone twin) ---------------- */
+  {
+    const svg = document.getElementById("cyl-avo-m");
+    cylCardM(svg, "avom", ["AMBER", "VIRIDIAN", "ORANGE"],
+      "THE BURIAL CYLINDERS, ONLY CERULEAN STANDS",
+      "EVERYTHING CLAIMED BUT THE BLADE.", "IT CAN WAIT. IT HAS.");
+  }
+
+  /* ---------------- 06-CAVO: all four down ---------------- */
+  {
+    const svg = document.getElementById("cyl-cavo");
+    cylCard(svg, "cavo", ["CERULEAN", "AMBER", "VIRIDIAN", "ORANGE"],
+      "THE BURIAL CYLINDERS, ALL FOUR DOWN",
+      "NOTHING LEFT SEALED. THE GUARDS KEEP ONLY THEIR POSTURE.");
+  }
+
+  /* ---------------- 06-CAVO-m: all four down (phone twin) ---------------- */
+  {
+    const svg = document.getElementById("cyl-cavo-m");
+    cylCardM(svg, "cavom", ["CERULEAN", "AMBER", "VIRIDIAN", "ORANGE"],
+      "THE BURIAL CYLINDERS, ALL FOUR DOWN",
+      "NOTHING LEFT SEALED.", "THE GUARDS KEEP ONLY THEIR POSTURE.");
   }
 
   /* ---------------- 38: the magnetic boots ---------------- */
@@ -14422,5 +14847,69 @@
     let saved = "both";
     try { saved = localStorage.getItem("reelView") || "both"; } catch (e) { /* ditto */ }
     set(saved);
+  });
+
+  // The cylinder combinator (CCB): sixteen burial-cylinder states, one on
+  // stage at a time. The bench's four switches pick a broken-set; the section
+  // holding that state's card (and its -m twin) stays visible and the other
+  // fifteen pairs go dark, so the break tree can be proofed without scrolling
+  // a wall of near-identical cards. Jump-index lines for the family double as
+  // selectors. Page-only plumbing: in the game the Hall of Warriors picks the
+  // same plate from room state (_cylinders_card in the adventure).
+  addEventListener("DOMContentLoaded", () => {
+    const bench = document.getElementById("cylbench");
+    if (!bench) return;
+    const ORDER = ["c", "a", "v", "o"]; // canon station order
+    const STATES = ["", "c", "a", "v", "o", "ca", "cv", "co", "av", "ao", "vo",
+                    "cav", "cao", "cvo", "avo", "cavo"];
+    const keyOf = (letters) => (letters ? "cyl-" + letters : "cylinders-b");
+    const family = [];
+    for (const letters of STATES)
+      for (const id of [keyOf(letters), keyOf(letters) + "-m"]) {
+        const el = document.getElementById(id);
+        const sec = el && el.closest("section");
+        if (sec) family.push({ letters, sec });
+      }
+    const down = new Set();
+    const keyline = document.getElementById("cylkey");
+    const buttons = bench.querySelectorAll("[data-cyl]");
+    const apply = () => {
+      const letters = ORDER.filter((l) => down.has(l)).join("");
+      for (const f of family) f.sec.classList.toggle("cyl-off", f.letters !== letters);
+      for (const b of buttons) {
+        const burst = down.has(b.dataset.cyl);
+        b.classList.toggle("burst", burst);
+        b.setAttribute("aria-pressed", String(burst));
+        b.querySelector("span").textContent =
+          b.dataset.name + " \u2014 " + (burst ? "BURST" : "SEALED");
+      }
+      if (keyline)
+        keyline.textContent = "ON STAGE: " + keyOf(letters) + " / " + keyOf(letters) + "-m";
+    };
+    for (const b of buttons)
+      b.addEventListener("click", () => {
+        const l = b.dataset.cyl;
+        if (down.has(l)) down.delete(l); else down.add(l);
+        apply();
+      });
+    // A jump line into the family sets the switches to match, then travels.
+    for (const a of document.querySelectorAll("#jump a")) {
+      const id = (a.getAttribute("href") || "").replace(/^#fig-/, "");
+      const base = id.replace(/-m$/, "");
+      let letters = null;
+      if (base === "cylinders-b") letters = "";
+      else if (/^cyl-[cavo]{1,4}$/.test(base)) letters = base.slice(4);
+      if (letters === null) continue;
+      a.addEventListener("click", (e) => {
+        e.preventDefault();
+        down.clear();
+        for (const l of letters) down.add(l);
+        apply();
+        const el = document.getElementById(id);
+        const sec = el && el.closest("section");
+        if (sec) sec.scrollIntoView({ block: "start" });
+      });
+    }
+    apply();
   });
 </script>

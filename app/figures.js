@@ -10,7 +10,7 @@
    and disconnected nodes drop off the clock automatically. */
 (() => {
   "use strict";
-  const META = {"autarch": ["svg", 640, 420], "autarch-c": ["svg", 640, 420], "autarch-c-m": ["svg", 640, 720], "autarch-e": ["svg", 640, 420], "autarch-e-m": ["svg", 640, 720], "autarch-m": ["svg", 640, 720], "bats": ["canvas", 640, 300], "bats-c": ["svg", 640, 360], "bats-c-m": ["svg", 640, 720], "bats-m": ["canvas", 640, 720], "blade": ["canvas", 640, 360], "blade-m": ["canvas", 640, 720], "boots": ["svg", 640, 360], "boots-m": ["svg", 640, 720], "canopic-c": ["svg", 640, 400], "centipede": ["svg", 640, 360], "centipede-m": ["svg", 640, 720], "chimney-f": ["svg", 640, 360], "chimney-f-m": ["svg", 640, 720], "chimney-g": ["svg", 640, 360], "chimney-g-m": ["svg", 640, 720], "chimney-h": ["svg", 640, 360], "chimney-h-m": ["svg", 640, 720], "core": ["svg", 640, 360], "core-m": ["svg", 640, 720], "critch": ["svg", 640, 360], "critch-m": ["svg", 640, 720], "cyl-a": ["svg", 640, 400], "cyl-a-m": ["svg", 640, 720], "cyl-c": ["svg", 640, 400], "cyl-c-m": ["svg", 640, 720], "cyl-o": ["svg", 640, 400], "cyl-o-m": ["svg", 640, 720], "cyl-v": ["svg", 640, 400], "cyl-v-m": ["svg", 640, 720], "cylinders": ["svg", 640, 400], "cylinders-b": ["svg", 640, 400], "cylinders-b-m": ["svg", 640, 720], "cylinders-m": ["svg", 640, 720], "dagger": ["svg", 640, 360], "dagger-m": ["svg", 640, 720], "epitaph": ["svg", 640, 400], "epitaph-m": ["svg", 640, 720], "ext1c": ["svg", 640, 400], "ext1c-m": ["svg", 640, 720], "ext1e": ["svg", 640, 400], "ext1e-m": ["svg", 640, 720], "flask": ["svg", 640, 360], "flask-m": ["svg", 640, 720], "flood": ["svg", 640, 360], "flood-m": ["svg", 640, 720], "fungus": ["svg", 640, 360], "fungus-m": ["svg", 640, 720], "glowstone": ["canvas", 640, 300], "glowstone-b": ["canvas", 640, 300], "glowstone-b-m": ["canvas", 640, 720], "glowstone-c": ["canvas", 640, 300], "glowstone-c-m": ["canvas", 640, 720], "glowstone-d": ["canvas", 640, 300], "glowstone-d-m": ["canvas", 640, 720], "glowstone-l": ["canvas", 640, 300], "glowstone-l-m": ["canvas", 640, 720], "glowstone-m": ["canvas", 640, 720], "guts-a": ["svg", 640, 360], "guts-a-m": ["svg", 640, 720], "guts-b": ["svg", 640, 360], "guts-b-m": ["svg", 640, 720], "guts-c": ["svg", 640, 360], "guts-c-m": ["svg", 640, 720], "guts-lash": ["svg", 640, 360], "guts-lash-m": ["svg", 640, 720], "hound": ["svg", 640, 360], "hound-m": ["svg", 640, 720], "jackal": ["svg", 640, 360], "jackal-m": ["svg", 640, 720], "jar-baboon": ["svg", 640, 300], "jar-falcon": ["svg", 640, 300], "jar-falcon-m": ["svg", 640, 720], "jar-human": ["svg", 640, 300], "jar-jackal": ["svg", 640, 300], "jar-jackal-m": ["svg", 640, 720], "jar-mantis": ["svg", 640, 300], "jar-mantis-m": ["svg", 640, 720], "manifest": ["svg", 640, 360], "manifest-m": ["svg", 640, 720], "mem-bath": ["svg", 640, 360], "mem-bath-m": ["svg", 640, 720], "mem-embalm": ["svg", 640, 360], "mem-embalm-m": ["svg", 640, 720], "mem-kestrel": ["svg", 640, 360], "mem-kestrel-m": ["svg", 640, 720], "mem-mother": ["svg", 640, 360], "mem-mother-m": ["svg", 640, 720], "mem-raising": ["svg", 640, 360], "mem-raising-m": ["svg", 640, 720], "mystic-b": ["svg", 640, 400], "mystic-b-m": ["svg", 640, 720], "mystic-c": ["svg", 640, 400], "mystic-c-m": ["svg", 640, 720], "mystic-f": ["svg", 640, 400], "mystic-f-m": ["svg", 640, 720], "resp": ["svg", 640, 360], "resp-m": ["svg", 640, 720], "road": ["svg", 640, 400], "road-m": ["svg", 640, 720], "seal": ["svg", 640, 400], "seal-b": ["svg", 640, 400], "seal-b-m": ["svg", 640, 720], "seal-m": ["svg", 640, 720], "shard": ["svg", 640, 360], "shard-m": ["svg", 640, 720], "silas": ["svg", 640, 400], "silas-m": ["svg", 640, 720], "spawn-a": ["svg", 640, 360], "spawn-a-m": ["svg", 640, 720], "spawn-b": ["svg", 640, 360], "spawn-b-m": ["svg", 640, 720], "spawn-c": ["svg", 640, 360], "spawn-c-m": ["svg", 640, 720], "sphere-b": ["svg", 640, 420], "sphere-b-m": ["svg", 640, 720], "sphere-d": ["svg", 640, 420], "sphere-d-m": ["svg", 640, 720], "sphere-e": ["svg", 640, 420], "sphere-e-m": ["svg", 640, 720], "sphere-f": ["svg", 640, 420], "sphere-f-m": ["svg", 640, 720], "tank": ["svg", 640, 360], "tank-f": ["svg", 640, 360], "tank-f-m": ["svg", 640, 720], "tank-m": ["svg", 640, 720], "tesseract": ["canvas", 640, 360], "tesseract-m": ["canvas", 640, 720], "tesseract-u": ["canvas", 640, 360], "tesseract-u-m": ["canvas", 640, 720], "ulfire": ["svg", 640, 360], "ulfire-m": ["svg", 640, 720], "ulfire-u": ["svg", 640, 360], "ulfire-u-m": ["svg", 640, 720], "wagon": ["svg", 640, 360], "youth-a": ["svg", 640, 360], "youth-a-m": ["svg", 640, 720], "youth-b": ["svg", 640, 360], "youth-b-f": ["svg", 640, 360], "youth-b-f-m": ["svg", 640, 720], "youth-b-m": ["svg", 640, 720], "youth-c": ["svg", 640, 360], "youth-c-m": ["svg", 640, 720], "youth-d": ["svg", 640, 360], "youth-d-m": ["svg", 640, 720], "zoxen": ["svg", 640, 360], "zoxen-b": ["svg", 640, 360], "zoxen-b-m": ["svg", 640, 720], "zoxen-m": ["svg", 640, 720]};
+  const META = {"autarch": ["svg", 640, 420], "autarch-c": ["svg", 640, 420], "autarch-c-m": ["svg", 640, 720], "autarch-e": ["svg", 640, 420], "autarch-e-m": ["svg", 640, 720], "autarch-m": ["svg", 640, 720], "bats": ["canvas", 640, 300], "bats-c": ["svg", 640, 360], "bats-c-m": ["svg", 640, 720], "bats-m": ["canvas", 640, 720], "blade": ["canvas", 640, 360], "blade-m": ["canvas", 640, 720], "boots": ["svg", 640, 360], "boots-m": ["svg", 640, 720], "canopic-c": ["svg", 640, 400], "centipede": ["svg", 640, 360], "centipede-m": ["svg", 640, 720], "chimney-f": ["svg", 640, 360], "chimney-f-m": ["svg", 640, 720], "chimney-g": ["svg", 640, 360], "chimney-g-m": ["svg", 640, 720], "chimney-h": ["svg", 640, 360], "chimney-h-m": ["svg", 640, 720], "core": ["svg", 640, 360], "core-m": ["svg", 640, 720], "critch": ["svg", 640, 360], "critch-m": ["svg", 640, 720], "cyl-a": ["svg", 640, 400], "cyl-a-m": ["svg", 640, 720], "cyl-ao": ["svg", 640, 400], "cyl-ao-m": ["svg", 640, 720], "cyl-av": ["svg", 640, 400], "cyl-av-m": ["svg", 640, 720], "cyl-avo": ["svg", 640, 400], "cyl-avo-m": ["svg", 640, 720], "cyl-c": ["svg", 640, 400], "cyl-c-m": ["svg", 640, 720], "cyl-ca": ["svg", 640, 400], "cyl-ca-m": ["svg", 640, 720], "cyl-cao": ["svg", 640, 400], "cyl-cao-m": ["svg", 640, 720], "cyl-cav": ["svg", 640, 400], "cyl-cav-m": ["svg", 640, 720], "cyl-cavo": ["svg", 640, 400], "cyl-cavo-m": ["svg", 640, 720], "cyl-co": ["svg", 640, 400], "cyl-co-m": ["svg", 640, 720], "cyl-cv": ["svg", 640, 400], "cyl-cv-m": ["svg", 640, 720], "cyl-cvo": ["svg", 640, 400], "cyl-cvo-m": ["svg", 640, 720], "cyl-o": ["svg", 640, 400], "cyl-o-m": ["svg", 640, 720], "cyl-v": ["svg", 640, 400], "cyl-v-m": ["svg", 640, 720], "cyl-vo": ["svg", 640, 400], "cyl-vo-m": ["svg", 640, 720], "cylinders": ["svg", 640, 400], "cylinders-b": ["svg", 640, 400], "cylinders-b-m": ["svg", 640, 720], "cylinders-m": ["svg", 640, 720], "dagger": ["svg", 640, 360], "dagger-m": ["svg", 640, 720], "epitaph": ["svg", 640, 400], "epitaph-m": ["svg", 640, 720], "ext1c": ["svg", 640, 400], "ext1c-m": ["svg", 640, 720], "ext1e": ["svg", 640, 400], "ext1e-m": ["svg", 640, 720], "flask": ["svg", 640, 360], "flask-m": ["svg", 640, 720], "flood": ["svg", 640, 360], "flood-m": ["svg", 640, 720], "fungus": ["svg", 640, 360], "fungus-m": ["svg", 640, 720], "glowstone": ["canvas", 640, 300], "glowstone-b": ["canvas", 640, 300], "glowstone-b-m": ["canvas", 640, 720], "glowstone-c": ["canvas", 640, 300], "glowstone-c-m": ["canvas", 640, 720], "glowstone-d": ["canvas", 640, 300], "glowstone-d-m": ["canvas", 640, 720], "glowstone-l": ["canvas", 640, 300], "glowstone-l-m": ["canvas", 640, 720], "glowstone-m": ["canvas", 640, 720], "guts-a": ["svg", 640, 360], "guts-a-m": ["svg", 640, 720], "guts-b": ["svg", 640, 360], "guts-b-m": ["svg", 640, 720], "guts-c": ["svg", 640, 360], "guts-c-m": ["svg", 640, 720], "guts-lash": ["svg", 640, 360], "guts-lash-m": ["svg", 640, 720], "hound": ["svg", 640, 360], "hound-m": ["svg", 640, 720], "jackal": ["svg", 640, 360], "jackal-m": ["svg", 640, 720], "jar-baboon": ["svg", 640, 300], "jar-falcon": ["svg", 640, 300], "jar-falcon-m": ["svg", 640, 720], "jar-human": ["svg", 640, 300], "jar-jackal": ["svg", 640, 300], "jar-jackal-m": ["svg", 640, 720], "jar-mantis": ["svg", 640, 300], "jar-mantis-m": ["svg", 640, 720], "manifest": ["svg", 640, 360], "manifest-m": ["svg", 640, 720], "mem-bath": ["svg", 640, 360], "mem-bath-m": ["svg", 640, 720], "mem-embalm": ["svg", 640, 360], "mem-embalm-m": ["svg", 640, 720], "mem-kestrel": ["svg", 640, 360], "mem-kestrel-m": ["svg", 640, 720], "mem-mother": ["svg", 640, 360], "mem-mother-m": ["svg", 640, 720], "mem-raising": ["svg", 640, 360], "mem-raising-m": ["svg", 640, 720], "mystic-b": ["svg", 640, 400], "mystic-b-m": ["svg", 640, 720], "mystic-c": ["svg", 640, 400], "mystic-c-m": ["svg", 640, 720], "mystic-f": ["svg", 640, 400], "mystic-f-m": ["svg", 640, 720], "resp": ["svg", 640, 360], "resp-m": ["svg", 640, 720], "road": ["svg", 640, 400], "road-m": ["svg", 640, 720], "seal": ["svg", 640, 400], "seal-b": ["svg", 640, 400], "seal-b-m": ["svg", 640, 720], "seal-m": ["svg", 640, 720], "shard": ["svg", 640, 360], "shard-m": ["svg", 640, 720], "silas": ["svg", 640, 400], "silas-m": ["svg", 640, 720], "spawn-a": ["svg", 640, 360], "spawn-a-m": ["svg", 640, 720], "spawn-b": ["svg", 640, 360], "spawn-b-m": ["svg", 640, 720], "spawn-c": ["svg", 640, 360], "spawn-c-m": ["svg", 640, 720], "sphere-b": ["svg", 640, 420], "sphere-b-m": ["svg", 640, 720], "sphere-d": ["svg", 640, 420], "sphere-d-m": ["svg", 640, 720], "sphere-e": ["svg", 640, 420], "sphere-e-m": ["svg", 640, 720], "sphere-f": ["svg", 640, 420], "sphere-f-m": ["svg", 640, 720], "tank": ["svg", 640, 360], "tank-f": ["svg", 640, 360], "tank-f-m": ["svg", 640, 720], "tank-m": ["svg", 640, 720], "tesseract": ["canvas", 640, 360], "tesseract-m": ["canvas", 640, 720], "tesseract-u": ["canvas", 640, 360], "tesseract-u-m": ["canvas", 640, 720], "ulfire": ["svg", 640, 360], "ulfire-m": ["svg", 640, 720], "ulfire-u": ["svg", 640, 360], "ulfire-u-m": ["svg", 640, 720], "wagon": ["svg", 640, 360], "youth-a": ["svg", 640, 360], "youth-a-m": ["svg", 640, 720], "youth-b": ["svg", 640, 360], "youth-b-f": ["svg", 640, 360], "youth-b-f-m": ["svg", 640, 720], "youth-b-m": ["svg", 640, 720], "youth-c": ["svg", 640, 360], "youth-c-m": ["svg", 640, 720], "youth-d": ["svg", 640, 360], "youth-d-m": ["svg", 640, 720], "zoxen": ["svg", 640, 360], "zoxen-b": ["svg", 640, 360], "zoxen-b-m": ["svg", 640, 720], "zoxen-m": ["svg", 640, 720]};
   const FIG = {
     _defs: {}, _uid: 0, _ticks: [], _timer: null, _target: null,
     MAX_LIVE: 3,
@@ -863,7 +863,8 @@
     const AMBERH = "#ffd06a", VIRIDIANH = "#4ee0a8";
     el(svg, "rect", { x: 0, y: 0, width: 640, height: 400, fill: BG });
     el(svg, "line", { x1: 16, y1: 34, x2: 624, y2: 34, stroke: PH_DIM });
-    const hdr = label(svg, 16, 24, 13, PH_BRIGHT);
+    // The longest combination titles would run into the class line at 13px.
+    const hdr = label(svg, 16, 24, hdrText.length > 40 ? 11 : 13, PH_BRIGHT);
     const cls = label(svg, 624, 24, 10, PH_DIM); cls.setAttribute("text-anchor", "end");
     cls.textContent = "GUARD ISSUE / " +
       ["INTACT", "ONE BURST", "TWO BURST", "THREE BURST", "ALL BURST"][broken.length];
@@ -1012,7 +1013,8 @@
     const AMBERH = "#ffd06a", VIRIDIANH = "#4ee0a8";
     el(svg, "rect", { x: 0, y: 0, width: 640, height: 720, fill: BG });
     el(svg, "line", { x1: 20, y1: 44, x2: 620, y2: 44, stroke: PH_DIM });
-    const hdr = label(svg, 20, 34, hdrText.length > 30 ? 22 : 26, PH_BRIGHT);
+    const hdr = label(svg, 20, 34,
+      hdrText.length > 40 ? 18 : hdrText.length > 30 ? 22 : 26, PH_BRIGHT);
     const cls = label(svg, 20, 70, 16, PH_DIM);
     cls.textContent = "GUARD ISSUE / " +
       ["INTACT", "ONE BURST", "TWO BURST", "THREE BURST", "ALL BURST"][broken.length];
@@ -1209,6 +1211,164 @@
     cylCardM(svg, "om", ["ORANGE"],
       "THE BURIAL CYLINDERS, ORANGE DOWN",
       "ORANGE FIRST.", "THE BLOOM THANKS YOU FOR YOUR LUNGS.");
+  });
+
+  /* ---- 06 deeper stampings (CCB): the rest of the break tree, every pair,
+     triple, and the cleaned-out hall, so the Hall of Warriors always deals
+     the exact wreckage. Keyed cyl-<letters down>, canon order c,a,v,o. ---- */
+
+  /* ---------------- 06-CA: cerulean and amber down ---------------- */
+  FIG._define("cyl-ca", "svg", function (svg) {
+    cylCard(svg, "ca", ["CERULEAN", "AMBER"],
+      "THE BURIAL CYLINDERS, CERULEAN AND AMBER DOWN",
+      "BLADE AND MASK CLAIMED. THE MANUAL NODS ALONG.");
+  });
+
+  /* ---------------- 06-CA-m: cerulean and amber down (phone twin) ---------------- */
+  FIG._define("cyl-ca-m", "svg", function (svg) {
+    cylCardM(svg, "cam", ["CERULEAN", "AMBER"],
+      "THE BURIAL CYLINDERS, CERULEAN AND AMBER DOWN",
+      "BLADE AND MASK CLAIMED.", "THE MANUAL NODS ALONG.");
+  });
+
+  /* ---------------- 06-CV: cerulean and viridian down ---------------- */
+  FIG._define("cyl-cv", "svg", function (svg) {
+    cylCard(svg, "cv", ["CERULEAN", "VIRIDIAN"],
+      "THE BURIAL CYLINDERS, CERULEAN AND VIRIDIAN DOWN",
+      "BLADE AND BOOTS. BREATHING REMAINS AN AMBITION.");
+  });
+
+  /* ---------------- 06-CV-m: cerulean and viridian down (phone twin) ---------------- */
+  FIG._define("cyl-cv-m", "svg", function (svg) {
+    cylCardM(svg, "cvm", ["CERULEAN", "VIRIDIAN"],
+      "THE BURIAL CYLINDERS, CERULEAN AND VIRIDIAN DOWN",
+      "BLADE AND BOOTS.", "BREATHING REMAINS AN AMBITION.");
+  });
+
+  /* ---------------- 06-CO: cerulean and orange down ---------------- */
+  FIG._define("cyl-co", "svg", function (svg) {
+    cylCard(svg, "co", ["CERULEAN", "ORANGE"],
+      "THE BURIAL CYLINDERS, CERULEAN AND ORANGE DOWN",
+      "A BLADE IN HAND, A BLOOM IN THE AIR.");
+  });
+
+  /* ---------------- 06-CO-m: cerulean and orange down (phone twin) ---------------- */
+  FIG._define("cyl-co-m", "svg", function (svg) {
+    cylCardM(svg, "com", ["CERULEAN", "ORANGE"],
+      "THE BURIAL CYLINDERS, CERULEAN AND ORANGE DOWN",
+      "A BLADE IN HAND,", "A BLOOM IN THE AIR.");
+  });
+
+  /* ---------------- 06-AV: amber and viridian down ---------------- */
+  FIG._define("cyl-av", "svg", function (svg) {
+    cylCard(svg, "av", ["AMBER", "VIRIDIAN"],
+      "THE BURIAL CYLINDERS, AMBER AND VIRIDIAN DOWN",
+      "MASKED AND MAGNETIZED. THE BLADE STILL SLEEPS.");
+  });
+
+  /* ---------------- 06-AV-m: amber and viridian down (phone twin) ---------------- */
+  FIG._define("cyl-av-m", "svg", function (svg) {
+    cylCardM(svg, "avm", ["AMBER", "VIRIDIAN"],
+      "THE BURIAL CYLINDERS, AMBER AND VIRIDIAN DOWN",
+      "MASKED AND MAGNETIZED.", "THE BLADE STILL SLEEPS.");
+  });
+
+  /* ---------------- 06-AO: amber and orange down ---------------- */
+  FIG._define("cyl-ao", "svg", function (svg) {
+    cylCard(svg, "ao", ["AMBER", "ORANGE"],
+      "THE BURIAL CYLINDERS, AMBER AND ORANGE DOWN",
+      "MASK FIRST, THEN THE VENT. SOMEBODY READ THE MANUAL.");
+  });
+
+  /* ---------------- 06-AO-m: amber and orange down (phone twin) ---------------- */
+  FIG._define("cyl-ao-m", "svg", function (svg) {
+    cylCardM(svg, "aom", ["AMBER", "ORANGE"],
+      "THE BURIAL CYLINDERS, AMBER AND ORANGE DOWN",
+      "MASK FIRST, THEN THE VENT.", "SOMEBODY READ THE MANUAL.");
+  });
+
+  /* ---------------- 06-VO: viridian and orange down ---------------- */
+  FIG._define("cyl-vo", "svg", function (svg) {
+    cylCard(svg, "vo", ["VIRIDIAN", "ORANGE"],
+      "THE BURIAL CYLINDERS, VIRIDIAN AND ORANGE DOWN",
+      "BOOTS AND A BLOOM, AND NOT A MASK BETWEEN THEM.");
+  });
+
+  /* ---------------- 06-VO-m: viridian and orange down (phone twin) ---------------- */
+  FIG._define("cyl-vo-m", "svg", function (svg) {
+    cylCardM(svg, "vom", ["VIRIDIAN", "ORANGE"],
+      "THE BURIAL CYLINDERS, VIRIDIAN AND ORANGE DOWN",
+      "BOOTS AND A BLOOM,", "AND NOT A MASK BETWEEN THEM.");
+  });
+
+  /* ---------------- 06-CAV: only orange stands ---------------- */
+  FIG._define("cyl-cav", "svg", function (svg) {
+    cylCard(svg, "cav", ["CERULEAN", "AMBER", "VIRIDIAN"],
+      "THE BURIAL CYLINDERS, ONLY ORANGE STANDS",
+      "THREE STRIPPED. THE BLOOM WAITS ITS TURN.");
+  });
+
+  /* ---------------- 06-CAV-m: only orange stands (phone twin) ---------------- */
+  FIG._define("cyl-cav-m", "svg", function (svg) {
+    cylCardM(svg, "cavm", ["CERULEAN", "AMBER", "VIRIDIAN"],
+      "THE BURIAL CYLINDERS, ONLY ORANGE STANDS",
+      "THREE STRIPPED.", "THE BLOOM WAITS ITS TURN.");
+  });
+
+  /* ---------------- 06-CAO: only viridian stands ---------------- */
+  FIG._define("cyl-cao", "svg", function (svg) {
+    cylCard(svg, "cao", ["CERULEAN", "AMBER", "ORANGE"],
+      "THE BURIAL CYLINDERS, ONLY VIRIDIAN STANDS",
+      "ONLY THE BOOTS KEEP THEIR POST. THE AIR DISAGREES.");
+  });
+
+  /* ---------------- 06-CAO-m: only viridian stands (phone twin) ---------------- */
+  FIG._define("cyl-cao-m", "svg", function (svg) {
+    cylCardM(svg, "caom", ["CERULEAN", "AMBER", "ORANGE"],
+      "THE BURIAL CYLINDERS, ONLY VIRIDIAN STANDS",
+      "ONLY THE BOOTS KEEP THEIR POST.", "THE AIR DISAGREES.");
+  });
+
+  /* ---------------- 06-CVO: only amber stands ---------------- */
+  FIG._define("cyl-cvo", "svg", function (svg) {
+    cylCard(svg, "cvo", ["CERULEAN", "VIRIDIAN", "ORANGE"],
+      "THE BURIAL CYLINDERS, ONLY AMBER STANDS",
+      "THE MASK STILL SEALED, THE BLOOM ALREADY LOOSE. TAKE THE HINT.");
+  });
+
+  /* ---------------- 06-CVO-m: only amber stands (phone twin) ---------------- */
+  FIG._define("cyl-cvo-m", "svg", function (svg) {
+    cylCardM(svg, "cvom", ["CERULEAN", "VIRIDIAN", "ORANGE"],
+      "THE BURIAL CYLINDERS, ONLY AMBER STANDS",
+      "MASK SEALED, BLOOM LOOSE.", "TAKE THE HINT.");
+  });
+
+  /* ---------------- 06-AVO: only cerulean stands ---------------- */
+  FIG._define("cyl-avo", "svg", function (svg) {
+    cylCard(svg, "avo", ["AMBER", "VIRIDIAN", "ORANGE"],
+      "THE BURIAL CYLINDERS, ONLY CERULEAN STANDS",
+      "EVERYTHING CLAIMED BUT THE BLADE. IT CAN WAIT. IT HAS.");
+  });
+
+  /* ---------------- 06-AVO-m: only cerulean stands (phone twin) ---------------- */
+  FIG._define("cyl-avo-m", "svg", function (svg) {
+    cylCardM(svg, "avom", ["AMBER", "VIRIDIAN", "ORANGE"],
+      "THE BURIAL CYLINDERS, ONLY CERULEAN STANDS",
+      "EVERYTHING CLAIMED BUT THE BLADE.", "IT CAN WAIT. IT HAS.");
+  });
+
+  /* ---------------- 06-CAVO: all four down ---------------- */
+  FIG._define("cyl-cavo", "svg", function (svg) {
+    cylCard(svg, "cavo", ["CERULEAN", "AMBER", "VIRIDIAN", "ORANGE"],
+      "THE BURIAL CYLINDERS, ALL FOUR DOWN",
+      "NOTHING LEFT SEALED. THE GUARDS KEEP ONLY THEIR POSTURE.");
+  });
+
+  /* ---------------- 06-CAVO-m: all four down (phone twin) ---------------- */
+  FIG._define("cyl-cavo-m", "svg", function (svg) {
+    cylCardM(svg, "cavom", ["CERULEAN", "AMBER", "VIRIDIAN", "ORANGE"],
+      "THE BURIAL CYLINDERS, ALL FOUR DOWN",
+      "NOTHING LEFT SEALED.", "THE GUARDS KEEP ONLY THEIR POSTURE.");
   });
 
   /* ---------------- 38: the magnetic boots ---------------- */

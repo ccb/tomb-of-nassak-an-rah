@@ -3280,25 +3280,23 @@ def build_game(seed=None):
             "where the blows landed."
         )
 
-    # The hall's card follows the wreckage (CCB): all sealed is 06-B; exactly
-    # one down gets that colour's own plate (06-C/A/V/O); deeper wreckage
-    # falls back to the generic scavenged plate (06) until those combinations
-    # are stamped from the same mold.
-    _CYL_CARDS = {
-        "cerulean": "cyl-c",
-        "amber": "cyl-a",
-        "viridian": "cyl-v",
-        "orange": "cyl-o",
+    # The hall's card follows the wreckage exactly (CCB): all sealed is 06-B;
+    # any other state keys the plate by which colours are down, in canon
+    # station order -- cyl-c through cyl-cavo, all sixteen stamped from the
+    # one mold in the reel.
+    _CYL_LETTERS = {
+        "cerulean": "c",
+        "amber": "a",
+        "viridian": "v",
+        "orange": "o",
     }
 
     def _cylinders_card(g=None):
         standing = _standing_cylinders()
         if len(standing) == 4:
             return "cylinders-b"
-        if len(standing) == 3:
-            (down,) = set(_CYL_CARDS) - set(standing)
-            return _CYL_CARDS[down]
-        return "cylinders"
+        down = "".join(l for c, l in _CYL_LETTERS.items() if c not in standing)
+        return "cyl-" + down
 
     _scenery(
         warriors,
@@ -5503,10 +5501,10 @@ def build_game(seed=None):
 
     game.add_trigger("lattice_break", _lattice_broken, _lattice_shatters)
 
-    # Breaking a cylinder re-shows the hall's plate (CCB). The per-colour litho
-    # (06-C/A/V/O when exactly one is down, the generic 06 deeper in) was only
-    # wired to EXAMINE and a lit arrival, so the break that CAUSES it showed
-    # nothing. Re-earn the current plate on any cylinder break.
+    # Breaking a cylinder re-shows the hall's plate (CCB). The per-state litho
+    # (one of the sixteen 06 combination plates) was only wired to EXAMINE and
+    # a lit arrival, so the break that CAUSES it showed nothing. Re-earn the
+    # current plate on any cylinder break.
     _CYL_WORDS = ("cylinder", "cerulean", "amber", "viridian", "orange")
 
     def _cylinder_broke(g):
