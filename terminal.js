@@ -289,10 +289,20 @@ function showFigure(key, opts = {}) {
    list (ev.text) instead. */
 let lastHintPanel = null;
 
-const CIPHER_UP = "ΓΔΘΛΞΠΣΦΨΩБГДЖЗИЙЛПФЦЧШЩЭЮЯ";
-const CIPHER_LO = "αβγδεζηθλμνξπστυφψωбвгджзилптфцчшщэюя";
-const CIPHER_DIG = "∅§‡◊";
-const CIPHER_CHURN = "▓▒░▚▞ΞΨЖШ";
+/* The cipher script is MONGOLIAN (CCB pick): cursive-joining, so the
+   ciphertext shapes into flowing script -- intercepted Autarchy
+   handwriting, not picked glyphs. No system MONO font carries it; every
+   platform renders it via per-glyph fallback (verified empirically:
+   iOS simulator, macOS, Android's Noto Sans Mongolian, Windows'
+   Mongolian Baiti), and the cipher line owns its whole line, so the
+   non-mono texture reads as foreign material, by design. Mongolian has
+   no case: the two pools split the block so the case PATTERN still maps
+   to a texture difference. Digits use the Mongolian numerals minus
+   MONGOLIAN DIGIT ZERO, a dead ringer for 0. */
+const CIPHER_UP = "ᠠᠡᠢᠣᠤᠥᠦᠧᠨᠩᠪᠫᠬᠭᠮᠯ";
+const CIPHER_LO = "ᠰᠱᠲᠳᠴᠵᠶᠷᠸᠹᠺᠻᠼᠽᠾᠿᡀᡁᡂ";
+const CIPHER_DIG = "᠑᠒᠓᠔᠕᠖᠗᠘᠙";
+const CIPHER_CHURN = "▓▒░▚▞ᠮᠰᠴᠾ";
 
 function cipherRng(text) {
   let h = 2166136261; // FNV-1a of the text seeds the stream: stable per rung
