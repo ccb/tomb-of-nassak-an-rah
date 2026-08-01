@@ -10,7 +10,7 @@
    and disconnected nodes drop off the clock automatically. */
 (() => {
   "use strict";
-  const META = {"autarch": ["svg", 640, 420], "autarch-c": ["svg", 640, 420], "autarch-c-m": ["svg", 640, 720], "autarch-e": ["svg", 640, 420], "autarch-e-m": ["svg", 640, 720], "autarch-m": ["svg", 640, 720], "bats": ["canvas", 640, 300], "bats-c": ["svg", 640, 360], "bats-c-m": ["svg", 640, 720], "bats-m": ["canvas", 640, 720], "blade": ["canvas", 640, 360], "blade-m": ["canvas", 640, 720], "boots": ["svg", 640, 360], "boots-m": ["svg", 640, 720], "canopic-c": ["svg", 640, 400], "centipede": ["svg", 640, 360], "centipede-m": ["svg", 640, 720], "chimney-f": ["svg", 640, 360], "chimney-f-m": ["svg", 640, 720], "chimney-g": ["svg", 640, 360], "chimney-g-m": ["svg", 640, 720], "chimney-h": ["svg", 640, 360], "chimney-h-m": ["svg", 640, 720], "core": ["svg", 640, 360], "core-m": ["svg", 640, 720], "critch": ["svg", 640, 360], "critch-m": ["svg", 640, 720], "cyl-a": ["svg", 640, 400], "cyl-a-m": ["svg", 640, 720], "cyl-c": ["svg", 640, 400], "cyl-c-m": ["svg", 640, 720], "cyl-o": ["svg", 640, 400], "cyl-o-m": ["svg", 640, 720], "cyl-v": ["svg", 640, 400], "cyl-v-m": ["svg", 640, 720], "cylinders": ["svg", 640, 400], "cylinders-b": ["svg", 640, 400], "cylinders-b-m": ["svg", 640, 720], "cylinders-m": ["svg", 640, 720], "dagger": ["svg", 640, 360], "dagger-m": ["svg", 640, 720], "epitaph": ["svg", 640, 400], "epitaph-m": ["svg", 640, 720], "ext1c": ["svg", 640, 400], "ext1c-m": ["svg", 640, 720], "ext1e": ["svg", 640, 400], "ext1e-m": ["svg", 640, 720], "flask": ["svg", 640, 360], "flask-m": ["svg", 640, 720], "flood": ["svg", 640, 360], "flood-m": ["svg", 640, 720], "fungus": ["svg", 640, 360], "fungus-m": ["svg", 640, 720], "glowstone": ["canvas", 640, 300], "glowstone-b": ["canvas", 640, 300], "glowstone-b-m": ["canvas", 640, 720], "glowstone-c": ["canvas", 640, 300], "glowstone-c-m": ["canvas", 640, 720], "glowstone-m": ["canvas", 640, 720], "guts-a": ["svg", 640, 360], "guts-a-m": ["svg", 640, 720], "guts-b": ["svg", 640, 360], "guts-b-m": ["svg", 640, 720], "guts-c": ["svg", 640, 360], "guts-c-m": ["svg", 640, 720], "guts-lash": ["svg", 640, 360], "guts-lash-m": ["svg", 640, 720], "hound": ["svg", 640, 360], "hound-m": ["svg", 640, 720], "jackal": ["svg", 640, 360], "jackal-m": ["svg", 640, 720], "jar-baboon": ["svg", 640, 300], "jar-falcon": ["svg", 640, 300], "jar-falcon-m": ["svg", 640, 720], "jar-human": ["svg", 640, 300], "jar-jackal": ["svg", 640, 300], "jar-jackal-m": ["svg", 640, 720], "jar-mantis": ["svg", 640, 300], "jar-mantis-m": ["svg", 640, 720], "manifest": ["svg", 640, 360], "manifest-m": ["svg", 640, 720], "mem-bath": ["svg", 640, 360], "mem-bath-m": ["svg", 640, 720], "mem-embalm": ["svg", 640, 360], "mem-embalm-m": ["svg", 640, 720], "mem-kestrel": ["svg", 640, 360], "mem-kestrel-m": ["svg", 640, 720], "mem-mother": ["svg", 640, 360], "mem-mother-m": ["svg", 640, 720], "mem-raising": ["svg", 640, 360], "mem-raising-m": ["svg", 640, 720], "mystic-b": ["svg", 640, 400], "mystic-b-m": ["svg", 640, 720], "mystic-c": ["svg", 640, 400], "mystic-c-m": ["svg", 640, 720], "mystic-f": ["svg", 640, 400], "mystic-f-m": ["svg", 640, 720], "resp": ["svg", 640, 360], "resp-m": ["svg", 640, 720], "road": ["svg", 640, 400], "road-m": ["svg", 640, 720], "seal": ["svg", 640, 400], "seal-b": ["svg", 640, 400], "seal-b-m": ["svg", 640, 720], "seal-m": ["svg", 640, 720], "shard": ["svg", 640, 360], "shard-m": ["svg", 640, 720], "silas": ["svg", 640, 400], "silas-m": ["svg", 640, 720], "spawn-a": ["svg", 640, 360], "spawn-a-m": ["svg", 640, 720], "spawn-b": ["svg", 640, 360], "spawn-b-m": ["svg", 640, 720], "spawn-c": ["svg", 640, 360], "spawn-c-m": ["svg", 640, 720], "sphere-b": ["svg", 640, 420], "sphere-b-m": ["svg", 640, 720], "sphere-d": ["svg", 640, 420], "sphere-d-m": ["svg", 640, 720], "sphere-e": ["svg", 640, 420], "sphere-e-m": ["svg", 640, 720], "sphere-f": ["svg", 640, 420], "sphere-f-m": ["svg", 640, 720], "tank": ["svg", 640, 360], "tank-f": ["svg", 640, 360], "tank-f-m": ["svg", 640, 720], "tank-m": ["svg", 640, 720], "tesseract": ["canvas", 640, 360], "tesseract-m": ["canvas", 640, 720], "tesseract-u": ["canvas", 640, 360], "tesseract-u-m": ["canvas", 640, 720], "ulfire": ["svg", 640, 360], "ulfire-m": ["svg", 640, 720], "ulfire-u": ["svg", 640, 360], "ulfire-u-m": ["svg", 640, 720], "wagon": ["svg", 640, 360], "youth-a": ["svg", 640, 360], "youth-a-m": ["svg", 640, 720], "youth-b": ["svg", 640, 360], "youth-b-f": ["svg", 640, 360], "youth-b-f-m": ["svg", 640, 720], "youth-b-m": ["svg", 640, 720], "youth-c": ["svg", 640, 360], "youth-c-m": ["svg", 640, 720], "youth-d": ["svg", 640, 360], "youth-d-m": ["svg", 640, 720], "zoxen": ["svg", 640, 360], "zoxen-b": ["svg", 640, 360], "zoxen-b-m": ["svg", 640, 720], "zoxen-m": ["svg", 640, 720]};
+  const META = {"autarch": ["svg", 640, 420], "autarch-c": ["svg", 640, 420], "autarch-c-m": ["svg", 640, 720], "autarch-e": ["svg", 640, 420], "autarch-e-m": ["svg", 640, 720], "autarch-m": ["svg", 640, 720], "bats": ["canvas", 640, 300], "bats-c": ["svg", 640, 360], "bats-c-m": ["svg", 640, 720], "bats-m": ["canvas", 640, 720], "blade": ["canvas", 640, 360], "blade-m": ["canvas", 640, 720], "boots": ["svg", 640, 360], "boots-m": ["svg", 640, 720], "canopic-c": ["svg", 640, 400], "centipede": ["svg", 640, 360], "centipede-m": ["svg", 640, 720], "chimney-f": ["svg", 640, 360], "chimney-f-m": ["svg", 640, 720], "chimney-g": ["svg", 640, 360], "chimney-g-m": ["svg", 640, 720], "chimney-h": ["svg", 640, 360], "chimney-h-m": ["svg", 640, 720], "core": ["svg", 640, 360], "core-m": ["svg", 640, 720], "critch": ["svg", 640, 360], "critch-m": ["svg", 640, 720], "cyl-a": ["svg", 640, 400], "cyl-a-m": ["svg", 640, 720], "cyl-c": ["svg", 640, 400], "cyl-c-m": ["svg", 640, 720], "cyl-o": ["svg", 640, 400], "cyl-o-m": ["svg", 640, 720], "cyl-v": ["svg", 640, 400], "cyl-v-m": ["svg", 640, 720], "cylinders": ["svg", 640, 400], "cylinders-b": ["svg", 640, 400], "cylinders-b-m": ["svg", 640, 720], "cylinders-m": ["svg", 640, 720], "dagger": ["svg", 640, 360], "dagger-m": ["svg", 640, 720], "epitaph": ["svg", 640, 400], "epitaph-m": ["svg", 640, 720], "ext1c": ["svg", 640, 400], "ext1c-m": ["svg", 640, 720], "ext1e": ["svg", 640, 400], "ext1e-m": ["svg", 640, 720], "flask": ["svg", 640, 360], "flask-m": ["svg", 640, 720], "flood": ["svg", 640, 360], "flood-m": ["svg", 640, 720], "fungus": ["svg", 640, 360], "fungus-m": ["svg", 640, 720], "glowstone": ["canvas", 640, 300], "glowstone-b": ["canvas", 640, 300], "glowstone-b-m": ["canvas", 640, 720], "glowstone-c": ["canvas", 640, 300], "glowstone-c-m": ["canvas", 640, 720], "glowstone-d": ["canvas", 640, 300], "glowstone-d-m": ["canvas", 640, 720], "glowstone-l": ["canvas", 640, 300], "glowstone-l-m": ["canvas", 640, 720], "glowstone-m": ["canvas", 640, 720], "guts-a": ["svg", 640, 360], "guts-a-m": ["svg", 640, 720], "guts-b": ["svg", 640, 360], "guts-b-m": ["svg", 640, 720], "guts-c": ["svg", 640, 360], "guts-c-m": ["svg", 640, 720], "guts-lash": ["svg", 640, 360], "guts-lash-m": ["svg", 640, 720], "hound": ["svg", 640, 360], "hound-m": ["svg", 640, 720], "jackal": ["svg", 640, 360], "jackal-m": ["svg", 640, 720], "jar-baboon": ["svg", 640, 300], "jar-falcon": ["svg", 640, 300], "jar-falcon-m": ["svg", 640, 720], "jar-human": ["svg", 640, 300], "jar-jackal": ["svg", 640, 300], "jar-jackal-m": ["svg", 640, 720], "jar-mantis": ["svg", 640, 300], "jar-mantis-m": ["svg", 640, 720], "manifest": ["svg", 640, 360], "manifest-m": ["svg", 640, 720], "mem-bath": ["svg", 640, 360], "mem-bath-m": ["svg", 640, 720], "mem-embalm": ["svg", 640, 360], "mem-embalm-m": ["svg", 640, 720], "mem-kestrel": ["svg", 640, 360], "mem-kestrel-m": ["svg", 640, 720], "mem-mother": ["svg", 640, 360], "mem-mother-m": ["svg", 640, 720], "mem-raising": ["svg", 640, 360], "mem-raising-m": ["svg", 640, 720], "mystic-b": ["svg", 640, 400], "mystic-b-m": ["svg", 640, 720], "mystic-c": ["svg", 640, 400], "mystic-c-m": ["svg", 640, 720], "mystic-f": ["svg", 640, 400], "mystic-f-m": ["svg", 640, 720], "resp": ["svg", 640, 360], "resp-m": ["svg", 640, 720], "road": ["svg", 640, 400], "road-m": ["svg", 640, 720], "seal": ["svg", 640, 400], "seal-b": ["svg", 640, 400], "seal-b-m": ["svg", 640, 720], "seal-m": ["svg", 640, 720], "shard": ["svg", 640, 360], "shard-m": ["svg", 640, 720], "silas": ["svg", 640, 400], "silas-m": ["svg", 640, 720], "spawn-a": ["svg", 640, 360], "spawn-a-m": ["svg", 640, 720], "spawn-b": ["svg", 640, 360], "spawn-b-m": ["svg", 640, 720], "spawn-c": ["svg", 640, 360], "spawn-c-m": ["svg", 640, 720], "sphere-b": ["svg", 640, 420], "sphere-b-m": ["svg", 640, 720], "sphere-d": ["svg", 640, 420], "sphere-d-m": ["svg", 640, 720], "sphere-e": ["svg", 640, 420], "sphere-e-m": ["svg", 640, 720], "sphere-f": ["svg", 640, 420], "sphere-f-m": ["svg", 640, 720], "tank": ["svg", 640, 360], "tank-f": ["svg", 640, 360], "tank-f-m": ["svg", 640, 720], "tank-m": ["svg", 640, 720], "tesseract": ["canvas", 640, 360], "tesseract-m": ["canvas", 640, 720], "tesseract-u": ["canvas", 640, 360], "tesseract-u-m": ["canvas", 640, 720], "ulfire": ["svg", 640, 360], "ulfire-m": ["svg", 640, 720], "ulfire-u": ["svg", 640, 360], "ulfire-u-m": ["svg", 640, 720], "wagon": ["svg", 640, 360], "youth-a": ["svg", 640, 360], "youth-a-m": ["svg", 640, 720], "youth-b": ["svg", 640, 360], "youth-b-f": ["svg", 640, 360], "youth-b-f-m": ["svg", 640, 720], "youth-b-m": ["svg", 640, 720], "youth-c": ["svg", 640, 360], "youth-c-m": ["svg", 640, 720], "youth-d": ["svg", 640, 360], "youth-d-m": ["svg", 640, 720], "zoxen": ["svg", 640, 360], "zoxen-b": ["svg", 640, 360], "zoxen-b-m": ["svg", 640, 720], "zoxen-m": ["svg", 640, 720]};
   const FIG = {
     _defs: {}, _uid: 0, _ticks: [], _timer: null, _target: null,
     MAX_LIVE: 3,
@@ -1863,6 +1863,108 @@
     }
     cv.addEventListener("pointerdown", () => { lit = !lit; if (reduced) draw(lastT + 1); });
     clock(t => { if ((t + 40) % 48 === 0) lit = !lit; draw(t); });
+  });
+
+  /* ---- glowOneWay: 08's switch, thrown once (08-L / 08-D + twins) ----
+     The interactive card's draw, verbatim, with the self-demo toggle
+     replaced by a single throw at t=8 that then HOLDS: dark-to-lit for
+     LIGHT GLOWSTONE, lit-to-dark for DOUSE GLOWSTONE. The card does
+     exactly what the command did, once. mobile re-frames per 08-m. */
+  function glowOneWay(cv, ctx, dousing, mobile) {
+    const YELLOW = "#ffd76a";
+    const OUTLINE = [[250,128],[286,84],[338,72],[386,96],[402,142],[376,184],[318,198],[268,176]];
+    const FACETS = [[1,6],[2,5],[0,4],[3,7]];
+    let lit = dousing, k = dousing ? 6 : 0;
+    const PROMPT = dousing ? "> DOUSE GLOWSTONE" : "> LIGHT GLOWSTONE";
+    function draw() {
+      // the glow steps toward its target, one increment per tick -- and
+      // with no toggle coming back, it saturates and holds
+      k = Math.max(0, Math.min(6, k + (lit ? 1 : -1)));
+      ctx.fillStyle = BG; ctx.fillRect(0, 0, cv.width, cv.height);
+      const kk = k / 6;
+      if (mobile) { ctx.save(); ctx.translate(-328, -6); ctx.scale(2, 2); }
+      if (kk > 0) { // the LIGHT: a radial wash of warm yellow, then the rings
+        const halo = ctx.createRadialGradient(324, 138, 8, 324, 138, 84 + k * 26);
+        halo.addColorStop(0, `rgba(255,215,106,${.30 * kk})`);
+        halo.addColorStop(.45, `rgba(255,215,106,${.13 * kk})`);
+        halo.addColorStop(1, "rgba(255,215,106,0)");
+        ctx.fillStyle = halo;
+        ctx.beginPath(); ctx.arc(324, 138, 84 + k * 26, 0, Math.PI * 2); ctx.fill();
+        for (let r = 1; r <= k; r++) { // concentric rings, quantized, fading out
+          ctx.strokeStyle = YELLOW; ctx.globalAlpha = .2 * kk * (1 - r / 8);
+          ctx.beginPath(); ctx.arc(324, 138, 60 + r * 22, 0, Math.PI * 2); ctx.stroke();
+        }
+        ctx.globalAlpha = 1;
+      }
+      const mix = kk > .5 ? YELLOW : kk > 0 ? PH : PH_DIM;
+      ctx.strokeStyle = mix; ctx.lineWidth = 1.6;
+      ctx.shadowColor = mix; ctx.shadowBlur = (4 + k * 4) * (mobile ? 2 : 1);
+      ctx.beginPath();
+      OUTLINE.forEach((p, i) => i ? ctx.lineTo(p[0], p[1]) : ctx.moveTo(p[0], p[1]));
+      ctx.closePath(); ctx.stroke();
+      FACETS.forEach(([a, b]) => { ctx.beginPath();
+        ctx.moveTo(OUTLINE[a][0], OUTLINE[a][1]); ctx.lineTo(OUTLINE[b][0], OUTLINE[b][1]); ctx.stroke(); });
+      // the switch
+      ctx.shadowBlur = 0;
+      ctx.strokeStyle = PH; ctx.strokeRect(270, 238, 100, 22);
+      ctx.fillStyle = lit ? YELLOW : PH_DIM;
+      ctx.fillRect(lit ? 322 : 274, 242, 44, 14);
+      if (mobile) ctx.restore();
+      // the type, at each frame's own size
+      const att = Math.round(kk * 10);
+      const ledger = "ATTENTION: " + "|".repeat(att) + ".".repeat(10 - att);
+      const done = dousing ? kk === 0 : kk === 1;
+      const quip = !done ? "" : dousing
+        ? "THE TOMB GOES BACK TO LISTENING."
+        : "LIGHT IS DEAR; ATTENTION DEARER";
+      ctx.fillStyle = PH_DIM;
+      if (mobile) {
+        ctx.font = "18px ui-monospace, monospace";
+        ctx.textAlign = "right"; ctx.fillText("DOUSED", 196, 500);
+        ctx.textAlign = "left"; ctx.fillText("LIT", 420, 500);
+        ctx.font = "20px ui-monospace, monospace";
+        ctx.fillText(ledger, 24, 620);
+        ctx.textAlign = "right"; ctx.fillText(PROMPT, 616, 620);
+        ctx.textAlign = "left";
+        ctx.fillStyle = dousing ? PH_DIM : YELLOW;
+        ctx.fillText(quip, 24, 40);
+      } else {
+        ctx.font = "11px ui-monospace, monospace";
+        ctx.textAlign = "right"; ctx.fillText("DOUSED", 262, 253);
+        ctx.textAlign = "left"; ctx.fillText("LIT", 378, 253);
+        ctx.fillText(ledger, 18, 288);
+        ctx.textAlign = "right"; ctx.fillText(PROMPT, 622, 288);
+        ctx.textAlign = "left";
+        ctx.fillStyle = dousing ? PH_DIM : YELLOW;
+        ctx.fillText(quip, 18, 24);
+      }
+    }
+    // the throw lands at t=8: a short beat of the starting state first
+    clock(t => { lit = dousing ? t < 8 : t >= 8; draw(); });
+  }
+
+  /* ---------------- 08-L: the glowstone, lighting (one way) ---------------- */
+  FIG._define("glowstone-l", "canvas", function (cv) {
+    const ctx = cv.getContext("2d");
+    glowOneWay(cv, ctx, false, false);
+  });
+
+  /* ---------------- 08-L-m: the glowstone, lighting (phone twin) ---------------- */
+  FIG._define("glowstone-l-m", "canvas", function (cv) {
+    const ctx = cv.getContext("2d");
+    glowOneWay(cv, ctx, false, true);
+  });
+
+  /* ---------------- 08-D: the glowstone, dousing (one way) ---------------- */
+  FIG._define("glowstone-d", "canvas", function (cv) {
+    const ctx = cv.getContext("2d");
+    glowOneWay(cv, ctx, true, false);
+  });
+
+  /* ---------------- 08-D-m: the glowstone, dousing (phone twin) ---------------- */
+  FIG._define("glowstone-d-m", "canvas", function (cv) {
+    const ctx = cv.getContext("2d");
+    glowOneWay(cv, ctx, true, true);
   });
 
   /* ---------------- 08-B: the glowstone, off ---------------- */
