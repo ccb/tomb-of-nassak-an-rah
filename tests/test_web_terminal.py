@@ -257,3 +257,13 @@ def test_the_wheel_needs_no_heavy_imports():
         [sys.executable, "-c", script], capture_output=True, text=True
     )
     assert "AUDIT-OK" in result.stdout, result.stderr[-2000:]
+
+
+def test_the_hint_panel_crosses_the_bridge():
+    """The bridge serializes meta for the hint channel, so terminal.js can
+    draw the decrypt panel; other channels stay lean."""
+    app_api.boot(0)
+    payload = json.loads(app_api.command("hint"))
+    hints = [e for e in payload["events"] if e["channel"] == "hint"]
+    assert hints and "panel" in hints[0]["meta"]
+    assert any(t["key"] == "light" for t in hints[0]["meta"]["panel"]["topics"])

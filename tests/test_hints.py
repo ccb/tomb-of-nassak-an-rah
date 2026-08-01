@@ -36,14 +36,14 @@ def test_menu_lists_only_met_and_unsolved_topics():
     g = _game()
     cap = _texts(g)
     g.do_command("hint")
-    menu = " ".join(cap.texts(Channel.NARRATION))
+    menu = " ".join(cap.texts(Channel.HINT))
     assert "see anything" in menu  # light: always available
     assert "crimson seal" not in menu  # canopic not visited: unspoiled
     assert "Fungal Horror" not in menu  # the endgame stays dark
     g.locations["Hall of the Canopic Jars"].has_been_visited = True
     cap2 = _texts(g)
     g.do_command("hint")
-    assert "crimson seal" in " ".join(cap2.texts(Channel.NARRATION))
+    assert "crimson seal" in " ".join(cap2.texts(Channel.HINT))
 
 
 def test_each_ask_reveals_one_more_level_and_it_costs_no_turn():
@@ -51,18 +51,18 @@ def test_each_ask_reveals_one_more_level_and_it_costs_no_turn():
     cap = _texts(g)
     turn = g.turn
     g.do_command("hint light")
-    first = " ".join(cap.texts(Channel.NARRATION))
+    first = " ".join(cap.texts(Channel.HINT))
     assert "did not die carrying nothing" in first
     assert "SEARCH" not in first  # level 2 stays unbought
     g.do_command("hint light")
-    second = " ".join(cap.texts(Channel.NARRATION))
+    second = " ".join(cap.texts(Channel.HINT))
     assert "SEARCH the dead merchant" in second
     assert g.turn == turn  # consulting the booklet costs no time
     assert g.hints_taken == 2
     g.do_command("hint light")  # level 3
     g.do_command("hint light")  # fully revealed: re-read only
     assert g.hints_taken == 3
-    assert "That is the whole of it" in " ".join(cap.texts(Channel.NARRATION))
+    assert "That is the whole of it" in " ".join(cap.texts(Channel.HINT))
 
 
 def test_topics_answer_to_number_key_and_question_words():
@@ -107,7 +107,7 @@ def test_the_dead_may_still_read_the_booklet():
     g.player.set_property("is_dead", True)
     cap = _texts(g)
     g.do_command("hint")
-    assert "questions worth asking" in " ".join(cap.texts(Channel.NARRATION))
+    assert "questions worth asking" in " ".join(cap.texts(Channel.HINT))
 
 
 def test_the_bridge_reports_hints_taken():
@@ -118,3 +118,22 @@ def test_the_bridge_reports_hints_taken():
     payload = json.loads(app_api.command("hint light"))
     assert payload["status"]["hints"] == 2
     assert "hint" in payload["suggestions"]["verbs"]
+
+
+def test_the_hint_panel_rides_the_channel_meta():
+    """The HINT message carries the structured ladder in meta["panel"]:
+    every open question, its full level list, and the reveal count -- the
+    web terminal's blur-and-decrypt widget draws from it, and each tap
+    replays as the same journaled `hint <key>`."""
+    g = _game()
+    cap = _texts(g)
+    g.do_command("hint")
+    (menu,) = cap.by_channel(Channel.HINT)
+    panel = menu.meta["panel"]
+    light = next(t for t in panel["topics"] if t["key"] == "light")
+    assert light["done"] == 0 and len(light["levels"]) >= 2
+    g.do_command("hint light")
+    asked = cap.by_channel(Channel.HINT)[-1].meta["panel"]
+    assert asked["asked"] == "light"
+    assert next(t for t in asked["topics"] if t["key"] == "light")["done"] == 1
+    assert asked["taken"] == 1

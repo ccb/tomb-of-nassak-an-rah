@@ -151,6 +151,13 @@ class Parser:
         terminal draws the card inline. Never enters command history."""
         self._emit(Channel.FIGURE, key)
 
+    def hint(self, text: str, panel: dict | None = None):
+        """Report the hint menu. *text* is the classic InvisiClues listing
+        (what plain renderers print); *panel*, when given, is the structured
+        ladder -- questions, levels, reveal counts -- for surfaces that can
+        draw a richer widget (the web terminal's blur-and-decrypt panel)."""
+        self._emit(Channel.HINT, text, meta={"panel": panel} if panel else {})
+
     @staticmethod
     def wrap_text(text: str, width: int = 80) -> str:
         """

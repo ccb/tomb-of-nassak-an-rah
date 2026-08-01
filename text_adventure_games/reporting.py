@@ -54,6 +54,8 @@ class Channel(Enum):
     AGENT_REFLECTION = "agent_reflection"  # ReAct "Reflect" after a failure
     SYSTEM = "system"  # turn header, clock, meta-command, game-over
     FIGURE = "figure"  # an illustration cue: text is a card KEY, not prose
+    HINT = "hint"  # the hint menu: text is the classic list; meta["panel"]
+    # carries the structured ladder for surfaces that can draw it
 
 
 # The agent's private ReAct trace -- never enters command_history, and the
@@ -103,6 +105,7 @@ _BASE = {
     Channel.CONFLICT,
     Channel.COMMAND,
     Channel.SYSTEM,
+    Channel.HINT,
 }
 _LEVEL_CHANNELS = {
     QUIET: _BASE,

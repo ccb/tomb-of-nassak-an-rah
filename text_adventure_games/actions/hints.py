@@ -46,6 +46,25 @@ class HintMenu(base.Action):
     def _menu(self):
         return [h for h in self.game.hints if h.is_open(self.game)]
 
+    def _panel(self, menu, asked=None):
+        """The structured ladder for surfaces that draw a richer hint widget
+        (the web terminal blurs unrevealed levels and reveals on tap). The
+        full ladders ship in the payload -- a determined player can peek via
+        the DOM, the same way they could read the walkthrough in the wheel."""
+        return {
+            "topics": [
+                {
+                    "key": h.key,
+                    "question": h.question,
+                    "levels": list(h.levels),
+                    "done": self.game.hint_progress.get(h.key, 0),
+                }
+                for h in menu
+            ],
+            "asked": asked,
+            "taken": getattr(self.game, "hints_taken", 0),
+        }
+
     def apply_effects(self):
         menu = self._menu()
         if not self.topic_words:
@@ -64,7 +83,7 @@ class HintMenu(base.Action):
             taken = getattr(self.game, "hints_taken", 0)
             if taken:
                 lines.append(f"[{taken} hint{'s' if taken != 1 else ''} taken]")
-            self.parser.ok("\n".join(lines))
+            self.parser.hint("\n".join(lines), panel=self._panel(menu))
             return
 
         topic = self.topic
@@ -80,7 +99,7 @@ class HintMenu(base.Action):
             lines.append("(That is the whole of it.)")
         else:
             lines.append(f"(HINT {topic.key.upper()} again for more.)")
-        self.parser.ok("\n".join(lines))
+        self.parser.hint("\n".join(lines), panel=self._panel(menu, asked=topic.key))
 
     def _match_topic(self, menu):
         """Resolve the player's words to an OPEN topic: menu number first,

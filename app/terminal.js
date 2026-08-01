@@ -271,11 +271,90 @@ function showFigure(key, opts = {}) {
   return box;
 }
 
+/* The hint panel: the InvisiClues ladder drawn as an Autarchy decrypt
+   console. Every rung of every open question is present up front, so the
+   SHAPE of the spoiler is visible -- but unrevealed rungs are blurred, and
+   only the NEXT rung offers [ DECRYPT ]. A tap submits the same journaled
+   free `hint <key>` the keyboard would, so saves, replays, and the
+   hints-taken tally stay honest; the engine's reply re-renders the panel
+   in place. Text renderers get the classic list (ev.text) instead. */
+let lastHintPanel = null;
+
+function renderHintPanel(box, panel) {
+  box.replaceChildren();
+  const head = document.createElement("div");
+  head.className = "hq-head";
+  head.textContent =
+    "ADVISORY SUBSYSTEM" +
+    (panel.taken ? ` -- ${panel.taken} LINE${panel.taken === 1 ? "" : "S"} DECRYPTED` : "");
+  box.appendChild(head);
+  for (const t of panel.topics) {
+    const q = document.createElement("div");
+    q.className = "hq";
+    q.textContent = `${t.question}  (${t.done}/${t.levels.length})`;
+    box.appendChild(q);
+    const ol = document.createElement("ol");
+    ol.className = "rungs";
+    t.levels.forEach((lvl, i) => {
+      const li = document.createElement("li");
+      const span = document.createElement("span");
+      span.textContent = lvl;
+      li.appendChild(span);
+      if (i < t.done) {
+        li.className = "revealed";
+      } else {
+        li.className = i === t.done ? "next" : "locked";
+        span.className = "blurred";
+        span.setAttribute("aria-hidden", "true");
+        if (i === t.done) {
+          const btn = document.createElement("button");
+          btn.type = "button";
+          btn.className = "decrypt";
+          btn.textContent = "[ DECRYPT ]";
+          btn.addEventListener("click", () => revealHint(t.key));
+          li.appendChild(btn);
+        }
+      }
+      ol.appendChild(li);
+    });
+    box.appendChild(ol);
+  }
+}
+
+function showHintPanel(ev, opts = {}) {
+  const panel = ev.meta && ev.meta.panel;
+  if (!panel || !panel.topics || !panel.topics.length) return false; // text fallback
+  let box =
+    opts.inPlace && lastHintPanel && output.contains(lastHintPanel)
+      ? lastHintPanel
+      : null;
+  if (!box) {
+    box = document.createElement("div");
+    box.className = "hintpanel";
+    output.appendChild(box);
+  }
+  renderHintPanel(box, panel);
+  lastHintPanel = box;
+  if (!opts.inPlace && nearBottom()) output.scrollTop = output.scrollHeight;
+  return true;
+}
+
+function revealHint(key) {
+  if (!api) return;
+  const data = JSON.parse(api.command("hint " + key));
+  for (const ev of data.events) {
+    if (ev.channel === "hint") showHintPanel(ev, { inPlace: true });
+  }
+  const s = data.status;
+  statusScore.textContent = `${s.score}/${s.max_score}   T:${s.turn}`;
+}
+
 function render(payloadJson, opts = {}) {
   const payload = JSON.parse(payloadJson);
   const instant = opts.instant || payload.events.length > 10;
   for (const ev of payload.events) {
     if (ev.channel === "figure") { showFigure(ev.text); continue; }
+    if (ev.channel === "hint" && showHintPanel(ev)) continue;
     const cls =
       ev.channel === "damage" ? "damage" :
       ev.channel === "blocked" ? "blocked" : "";
