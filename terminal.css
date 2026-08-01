@@ -383,3 +383,50 @@ body.no-crt #output .figure::after { display: none; }
     radial-gradient(ellipse at center, transparent 60%, rgba(0, 0, 0, 0.55) 100%);
 }
 body.no-crt #bootscreen::after { display: none; }
+
+/* --- the hint panel: an Autarchy decrypt console (InvisiClues, blurred) --- */
+.hintpanel {
+  border: 1px solid var(--phosphor-dim);
+  border-radius: 6px;
+  padding: .6rem .9rem;
+  margin: .5rem 0;
+  background: rgba(30, 95, 138, .06);
+}
+.hintpanel .hq-head {
+  color: var(--phosphor-dim);
+  font-size: .72rem;
+  letter-spacing: .14em;
+}
+.hintpanel .hq { color: var(--phosphor-bright); margin: .55rem 0 .15rem; }
+.hintpanel ol.rungs { margin: 0 0 .35rem; padding-left: 1.5rem; }
+.hintpanel li { margin: .18rem 0; }
+.hintpanel li .blurred {
+  filter: blur(5px);
+  user-select: none;
+  -webkit-user-select: none;
+}
+.hintpanel li.locked { opacity: .45; }
+.hintpanel .decrypt {
+  background: transparent;
+  border: 1px solid var(--phosphor-dim);
+  border-radius: 3px;
+  color: var(--phosphor-bright);
+  font-family: inherit;
+  font-size: .72rem;
+  letter-spacing: .08em;
+  margin-left: .6rem;
+  padding: 0 .4rem;
+  cursor: pointer;
+}
+.hintpanel .decrypt:hover, .hintpanel .decrypt:active {
+  background: var(--phosphor-dim);
+  color: var(--bg);
+}
+
+/* ------------------------------------------------------- scroll anchoring */
+/* Chrome's scroll anchoring (Safari has none) reacts to the litho cards'
+   cycle redraws with a visible hop -- up to the card, then back -- seen
+   inside the itch.io iframe on the Hall of Youth card. The terminal manages
+   its own scroll (nearBottom follow, read-from-the-top anchors), so
+   anchoring is all downside: opt every scroller out, window included. */
+html, body, #output { overflow-anchor: none; }

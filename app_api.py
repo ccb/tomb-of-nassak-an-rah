@@ -88,7 +88,17 @@ def _make_store():
 
 
 def _events():
-    return [{"channel": m.channel.value, "text": m.text} for m in _cap.drain()]
+    out = []
+    for m in _cap.drain():
+        ev = {"channel": m.channel.value, "text": m.text}
+        if m.meta:
+            try:  # meta rides along only when it survives JSON whole
+                json.dumps(m.meta)
+                ev["meta"] = m.meta
+            except (TypeError, ValueError):
+                pass
+        out.append(ev)
+    return out
 
 
 def _status():
