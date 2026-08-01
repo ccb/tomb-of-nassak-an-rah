@@ -12,6 +12,15 @@ const statusRoom = document.getElementById("status-room");
 const statusScore = document.getElementById("status-score");
 const chipsVerbs = document.getElementById("chips-verbs");
 const chipsNouns = document.getElementById("chips-nouns");
+
+// On a keyboard machine the input line keeps the caret (CCB): chips compose
+// half a command and the rest is typed, so focus snaps back after every
+// tap that could steal it. On touch, focus means the software keyboard --
+// there the input is focused only when the player taps it themselves.
+const COARSE = window.matchMedia("(pointer: coarse)").matches;
+// Deferred a beat: the browser's own focus handling for the tap runs after
+// our listeners, so focusing synchronously here would just be undone.
+function refocus() { if (!COARSE) setTimeout(() => cmd.focus(), 0); }
 const bootscreen = document.getElementById("bootscreen");
 const boottext = document.getElementById("boottext");
 const suggestbar = document.getElementById("suggestbar");
@@ -93,6 +102,10 @@ function renderSettings() {
 function toggleSettings(show) {
   const on = show ?? settingsPanel.classList.contains("hidden");
   settingsPanel.classList.toggle("hidden", !on);
+  // The menu owns the moment: the caret leaves while it is up (and any
+  // software keyboard drops), and comes back the instant it closes.
+  if (on) cmd.blur();
+  else refocus();
 }
 document.getElementById("gear").addEventListener("pointerdown", (e) => {
   e.preventDefault();
@@ -410,7 +423,7 @@ function renderHintPanel(box, panel) {
           btn.type = "button";
           btn.className = "decrypt";
           btn.textContent = "[ DECRYPT ]";
-          btn.addEventListener("click", () => revealHint(t.key));
+          btn.addEventListener("click", () => { revealHint(t.key); refocus(); });
           li.appendChild(btn);
         }
       }
@@ -502,6 +515,7 @@ function chip(word, cls, withSpace) {
     click();
     const sep = cmd.value && !cmd.value.endsWith(" ") ? " " : "";
     cmd.value += sep + word + (withSpace ? " " : "");
+    refocus();
   };
   el._append = append;
   // Mouse taps append here; touch is routed through the row's drag-scroll
@@ -597,6 +611,7 @@ document.getElementById("send").addEventListener("pointerdown", (e) => {
   ensureAudio();
   click();
   submit();
+  refocus();
 });
 document.addEventListener("pointerdown", ensureAudio, { once: true });
 
@@ -619,6 +634,7 @@ function closePanels() {
     if (panelInv.classList.contains("hidden")) panelInv.replaceChildren();
     if (panelMap.classList.contains("hidden")) panelMap.replaceChildren();
   }, 260);
+  refocus();
 }
 
 function el(tag, cls, text) {
@@ -1029,7 +1045,9 @@ async function main() {
   bootscreen.classList.add("done");
   ensureAudio();
   sounds.boot();
-  // No autofocus (CCB): the keyboard comes when the player taps the input.
+  // On touch, no autofocus (CCB): the keyboard comes when the player taps
+  // the input. A keyboard machine boots with the caret already waiting.
+  refocus();
 }
 
 main().catch((e) => {
