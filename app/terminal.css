@@ -384,7 +384,7 @@ body.no-crt #output .figure::after { display: none; }
 }
 body.no-crt #bootscreen::after { display: none; }
 
-/* --- the hint panel: an Autarchy decrypt console (InvisiClues, blurred) --- */
+/* --- the hint panel: an Autarchy decrypt console (InvisiClues, enciphered) --- */
 .hintpanel {
   border: 1px solid var(--phosphor-dim);
   border-radius: 6px;
@@ -400,11 +400,7 @@ body.no-crt #bootscreen::after { display: none; }
 .hintpanel .hq { color: var(--phosphor-bright); margin: .55rem 0 .15rem; }
 .hintpanel ol.rungs { margin: 0 0 .35rem; padding-left: 1.5rem; }
 .hintpanel li { margin: .18rem 0; }
-.hintpanel li .blurred {
-  filter: blur(5px);
-  user-select: none;
-  -webkit-user-select: none;
-}
+.hintpanel li .cipher { color: #2f7cab; }
 .hintpanel li.locked { opacity: .45; }
 .hintpanel .decrypt {
   background: transparent;

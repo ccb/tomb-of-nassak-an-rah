@@ -273,12 +273,74 @@ function showFigure(key, opts = {}) {
 
 /* The hint panel: the InvisiClues ladder drawn as an Autarchy decrypt
    console. Every rung of every open question is present up front, so the
-   SHAPE of the spoiler is visible -- but unrevealed rungs are blurred, and
-   only the NEXT rung offers [ DECRYPT ]. A tap submits the same journaled
-   free `hint <key>` the keyboard would, so saves, replays, and the
-   hints-taken tally stay honest; the engine's reply re-renders the panel
-   in place. Text renderers get the classic list (ev.text) instead. */
+   SHAPE of the spoiler is visible -- word lengths, case, punctuation --
+   but unrevealed rungs are ENCIPHERED: each letter swapped, per
+   occurrence, for a glyph from an alphabet that is not yours (Greek and
+   Cyrillic, with every Latin-lookalike culled so it reads as cipher, not
+   as garbled English; both alphabets live in every system mono font, so
+   the terminal grid holds). Per-occurrence substitution means there is
+   no consistent mapping to attack -- shape is the only leak, and the
+   seed is the text, so the ciphertext is a stable document, not static.
+   Only the NEXT rung offers [ DECRYPT ]; a tap submits the same
+   journaled free `hint <key>` the keyboard would, so saves, replays,
+   and the hints-taken tally stay honest, and the engine's reply
+   re-renders the panel in place -- with the fresh line resolving
+   left-to-right under a churn of glitch. Text renderers get the classic
+   list (ev.text) instead. */
 let lastHintPanel = null;
+
+const CIPHER_UP = "ΓΔΘΛΞΠΣΦΨΩБГДЖЗИЙЛПФЦЧШЩЭЮЯ";
+const CIPHER_LO = "αβγδεζηθλμνξπστυφψωбвгджзилптфцчшщэюя";
+const CIPHER_DIG = "∅§‡◊";
+const CIPHER_CHURN = "▓▒░▚▞ΞΨЖШ";
+
+function cipherRng(text) {
+  let h = 2166136261; // FNV-1a of the text seeds the stream: stable per rung
+  for (const c of text) { h ^= c.charCodeAt(0); h = Math.imul(h, 16777619); }
+  let seed = h >>> 0;
+  return function () {
+    seed = (seed + 0x6D2B79F5) | 0;
+    let t = Math.imul(seed ^ (seed >>> 15), 1 | seed);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
+function encipher(text) {
+  const rnd = cipherRng(text);
+  return [...text].map((ch) => {
+    if (ch.toLowerCase() === ch.toUpperCase())
+      return /[0-9]/.test(ch) ? CIPHER_DIG[(rnd() * CIPHER_DIG.length) | 0] : ch;
+    const pool = ch === ch.toUpperCase() ? CIPHER_UP : CIPHER_LO;
+    return pool[(rnd() * pool.length) | 0];
+  }).join("");
+}
+
+/* The decrypt cascade: the fresh line resolves left-to-right, a bright
+   churn of glitch running a few characters ahead of the front. Instant
+   when the typewriter is off or the reader prefers reduced motion. */
+function decryptReveal(span, real) {
+  const instant =
+    settings.typewriter === "off" ||
+    matchMedia("(prefers-reduced-motion: reduce)").matches;
+  if (instant || !real) { span.textContent = real; span.className = ""; return; }
+  const tail = encipher(real);
+  const chars = [...real];
+  let front = 0, tick = 0;
+  const iv = setInterval(() => {
+    if (!span.isConnected) { clearInterval(iv); return; } // panel re-rendered
+    front = Math.min(chars.length, front + 2);
+    let out = chars.slice(0, front).join("");
+    for (let i = front; i < chars.length; i++) {
+      out += i < front + 3 && chars[i] !== " "
+        ? CIPHER_CHURN[(Math.random() * CIPHER_CHURN.length) | 0]
+        : tail[i];
+    }
+    span.textContent = out;
+    if (++tick % 4 === 0) sounds.tick();
+    if (front >= chars.length) { clearInterval(iv); span.className = ""; }
+  }, 30);
+}
 
 function renderHintPanel(box, panel) {
   box.replaceChildren();
@@ -286,7 +348,8 @@ function renderHintPanel(box, panel) {
   head.className = "hq-head";
   head.textContent =
     "ADVISORY SUBSYSTEM" +
-    (panel.taken ? ` -- ${panel.taken} LINE${panel.taken === 1 ? "" : "S"} DECRYPTED` : "");
+    (panel.taken ? ` -- ${panel.taken} LINE${panel.taken === 1 ? "" : "S"} DECRYPTED` : "") +
+    " / CIPHER: AUTARCH-PROPRIETARY";
   box.appendChild(head);
   for (const t of panel.topics) {
     const q = document.createElement("div");
@@ -298,13 +361,20 @@ function renderHintPanel(box, panel) {
     t.levels.forEach((lvl, i) => {
       const li = document.createElement("li");
       const span = document.createElement("span");
-      span.textContent = lvl;
       li.appendChild(span);
       if (i < t.done) {
         li.className = "revealed";
+        if (t.key === panel.asked && i === t.done - 1) {
+          span.className = "cipher";
+          span.textContent = encipher(lvl);
+          decryptReveal(span, lvl); // the line just bought resolves in place
+        } else {
+          span.textContent = lvl;
+        }
       } else {
         li.className = i === t.done ? "next" : "locked";
-        span.className = "blurred";
+        span.className = "cipher";
+        span.textContent = encipher(lvl);
         span.setAttribute("aria-hidden", "true");
         if (i === t.done) {
           const btn = document.createElement("button");
