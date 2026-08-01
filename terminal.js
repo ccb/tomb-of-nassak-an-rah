@@ -550,7 +550,7 @@ dragScroll(chipsNouns);
 
 function renderChips(sug) {
   chipsVerbs.replaceChildren(
-    ...sug.exits.map((e) => chip(e, "", false)),
+    ...sug.exits.map((e) => chip("go " + e, "", false)),
     ...sug.verbs.map((v) => chip(v, "", true))
   );
   chipsNouns.replaceChildren(...sug.nouns.map((n) => chip(n, "noun", false)));
