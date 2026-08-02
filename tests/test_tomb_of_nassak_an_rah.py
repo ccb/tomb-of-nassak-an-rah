@@ -1547,8 +1547,6 @@ def test_a_punch_is_answered_in_the_targets_register():
     assert "Punch what?" in " ".join(cap.texts(Channel.BLOCKED))
     game.do_command("punch wreck")  # an item: steered to boot and tool
     assert "KICK it, or BREAK it" in " ".join(cap.texts(Channel.NARRATION))
-    game.do_command("punch critch")
-    assert "do that to you for free" in " ".join(cap.texts(Channel.NARRATION))
     h = game.locations["Hall of Hounds"]
     jack = game.characters["jackal pack"]
     horror = game.characters["fungal horror"]
@@ -1569,6 +1567,26 @@ def test_a_punch_is_answered_in_the_targets_register():
     game.do_command("punch silas")
     assert "librarian's care" in " ".join(cap3.texts(Channel.NARRATION))
     assert not silas.get_property("wrathful")  # filed, not avenged
+
+
+def test_punching_critch_forfeits_her_counsel():
+    """One swing at the only friendly face on the road: she puts you in the
+    sand ('I am done with violence'), leaves at once -- 'Let the tomb keep
+    you' -- and the hints she was going to give (the merchant, the
+    glowstone) are never given."""
+    game = _game()
+    wreck = game.locations["The Caravan Wreck"]
+    critch = game.characters["Critch"]
+    cap = _texts(game)
+    game.do_command("punch critch")
+    text = " ".join(cap.texts(Channel.NARRATION))
+    assert "I am done with violence" in text
+    assert "Let the tomb keep you" in text
+    assert critch.name not in wreck.characters  # gone, at once
+    assert not critch.get_property("has_spoken")  # counsel never given
+    cap2 = _texts(game)
+    game.do_command("talk to critch")  # too late to ask
+    assert "search him" not in " ".join(cap2.texts(Channel.NARRATION))
 
 
 def test_a_bare_fist_answers_the_centipede_at_a_price():

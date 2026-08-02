@@ -559,7 +559,7 @@ def _wagon_burns(g):
     """BURN WAGON: the whole opening tableau, spent on purpose (CCB). One
     breath for the sail, ten for the ribs; the hold's cargo burns item by
     item, each with its own pyre-line; the wreck and the hold re-read as
-    aftermath. Critch gets the last word -- if he is standing here to say
+    aftermath. Critch gets the last word -- if she is standing here to say
     it. No warning beat: fire this big explains itself."""
     wreck_loc = g.locations["The Caravan Wreck"]
     hold = g.locations["The Wagon's Hold"]
@@ -633,10 +633,10 @@ def _wagon_burns(g):
         and not critch.get_property("is_unconscious")
     ):
         g.parser.ok(
-            "Critch does not move to stop you. He watches the caravan he "
+            "Critch does not move to stop you. She watches the caravan she "
             "drove across half of Vaarn go up like a festival, and says, "
             "at last: 'The road to Gnomon is walked only by the "
-            "desperate.' He does not look at you when he says it."
+            "desperate.' She does not look at you when she says it."
         )
 
 
@@ -2588,12 +2588,26 @@ def _unarmed_answer(g, ch):
         )
         return
     if name == "Critch":
-        # The one friendly face down here does not get a steer toward
-        # ATTACK -- he gets to be better at ducking than you are at hitting.
+        # Punching the one friendly face on the road is answered ONCE, and
+        # costs exactly what she was worth: her counsel (the merchant, the
+        # glowstone, "mind the tomb" -- none of it given now). She survived
+        # the night by knowing when to be elsewhere, and now she is.
+        ch.set_property("done_with_violence", True)
         g.parser.ok(
-            "Critch leans out of the swing without hurry, the way a man "
-            "steps out of weather he has seen before. 'The tomb will do "
-            "that to you for free,' he says, without judgement."
+            "Critch takes your wrist out of the air almost gently, turns "
+            "her hip, and puts you into the blue sand with the unhurried "
+            "economy of someone who has thrown heavier freight than you. "
+            "'I am done with violence,' she says, standing over you. It "
+            "does not sound like a boast. It sounds like a rule."
+        )
+        loc = ch.location
+        if loc is not None:
+            loc.remove_character(ch)
+        g.parser.ok(
+            "She settles the mask over her face, takes up her stick, and "
+            "sets off south along the trail without another look at you. "
+            "The wind brings back one more thing, half laugh, half "
+            "verdict: 'Let the tomb keep you.'"
         )
         return
     g.parser.ok(
@@ -3324,7 +3338,7 @@ def build_game(seed=None):
 
     def _teamster_talk(g):
         teamster.set_property("has_spoken", True)
-        g.show_figure("critch")  # the survival pamphlet, with his first words
+        g.show_figure("critch")  # the survival pamphlet, with her first words
         return (
             '"They came at moonset, laughing," Critch says, and laughs '
             'herself, without pleasure. "I ran, and the merchant could not, '
