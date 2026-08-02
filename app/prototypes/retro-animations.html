@@ -109,6 +109,12 @@
   }
   .benchkey { color: var(--ph-dim); font-size: .78rem; letter-spacing: .08em; }
   section.cyl-off { display: none; }
+  /* variant pickers: one subject in several states, one staged at a time */
+  .picker { display: flex; flex-wrap: wrap; gap: .6rem; align-items: baseline; margin-bottom: -2.2rem; }
+  .picker .pkname { color: var(--ph-bright); font-size: .8rem; letter-spacing: .14em; margin-right: .4rem; }
+  .picker .chip-btn { background: transparent; font-family: inherit; }
+  .picker .chip-btn.active { background: var(--ph-dim); color: var(--bg); }
+  section.pk-off { display: none; }
   @media (prefers-reduced-motion: reduce) {
     .screen::after { animation: none; }
   }
@@ -1011,6 +1017,29 @@
   </section>
 
   <section>
+    <div class="slate"><h2>53 &mdash; THE LESSON, LEARNED</h2><span class="kind">STORY BEAT / HALL OF YOUTH</span></div>
+    <div class="screen">
+      <svg id="youth-d" viewBox="0 0 640 360" aria-label="Douse the light and the swarm climbs home"></svg>
+    </div>
+    <p class="spec">48's other half: it opens at the worst moment -- the whole swarm
+       orbiting the stone -- then DOUSE GLOWSTONE. QUICKLY. The light dies, the wings
+       climb home in ragged waves, the REGRET meter drains cell by cell, and the vault
+       settles. Grudgingly.
+       <span class="attach">Attaches: DOUSE in the Hall of Youth, while the colony
+       still roosts there -- forced every time; contrition is always current.</span></p>
+  </section>
+
+  <section>
+    <div class="slate"><h2>53-m &mdash; THE LESSON, LEARNED (phone)</h2><span class="kind">STORY BEAT / PHONE TWIN</span></div>
+    <div class="screen">
+      <svg id="youth-d-m" viewBox="0 0 640 720" aria-label="Douse the light and the swarm climbs home (phone)"></svg>
+    </div>
+    <p class="spec">The phone-legible twin of 53, on 48-m's framing: the retreat at 1.3x,
+       the settle line, command, REGRET meter, and footer re-set in big type.
+       <span class="attach">Selected by terminal.js when the card would render under ~560px.</span></p>
+  </section>
+
+  <section>
     <div class="slate"><h2>49 &mdash; THE MANIFEST</h2><span class="kind">DOCUMENT / THE CARAVAN</span></div>
     <div class="screen">
       <svg id="manifest" viewBox="0 0 640 360" aria-label="The merchant's manifest, stamped"></svg>
@@ -1102,29 +1131,6 @@
     </div>
     <p class="spec">The phone-legible twin of 52 &mdash; 51-m's final frame, kept: the same
        framing, the same eight coursers at the same rest angles, lenses still blinking.
-       <span class="attach">Selected by terminal.js when the card would render under ~560px.</span></p>
-  </section>
-
-  <section>
-    <div class="slate"><h2>53 &mdash; THE LESSON, LEARNED</h2><span class="kind">STORY BEAT / HALL OF YOUTH</span></div>
-    <div class="screen">
-      <svg id="youth-d" viewBox="0 0 640 360" aria-label="Douse the light and the swarm climbs home"></svg>
-    </div>
-    <p class="spec">48's other half: it opens at the worst moment -- the whole swarm
-       orbiting the stone -- then DOUSE GLOWSTONE. QUICKLY. The light dies, the wings
-       climb home in ragged waves, the REGRET meter drains cell by cell, and the vault
-       settles. Grudgingly.
-       <span class="attach">Attaches: DOUSE in the Hall of Youth, while the colony
-       still roosts there -- forced every time; contrition is always current.</span></p>
-  </section>
-
-  <section>
-    <div class="slate"><h2>53-m &mdash; THE LESSON, LEARNED (phone)</h2><span class="kind">STORY BEAT / PHONE TWIN</span></div>
-    <div class="screen">
-      <svg id="youth-d-m" viewBox="0 0 640 720" aria-label="Douse the light and the swarm climbs home (phone)"></svg>
-    </div>
-    <p class="spec">The phone-legible twin of 53, on 48-m's framing: the retreat at 1.3x,
-       the settle line, command, REGRET meter, and footer re-set in big type.
        <span class="attach">Selected by terminal.js when the card would render under ~560px.</span></p>
   </section>
 
@@ -14864,5 +14870,94 @@
       });
     }
     apply();
+  });
+
+  // The variant pickers (CCB): families whose cards are one subject in
+  // different states get a row of buttons above the group that stages one
+  // variant (and its phone twin) at a time, cylinder-bench-wise, instead of
+  // a run of near-identical cards. Jump-index lines still reach every card:
+  // one into a family selects that variant on the way. Page-only plumbing;
+  // in the game each state is dealt by its own trigger or figure property.
+  addEventListener("DOMContentLoaded", () => {
+    const D = " \u2014 ";
+    const GROUPS = [
+      ["08" + D + "THE GLOWSTONE", [
+        ["BASE", "glowstone"], ["LIGHTING", "glowstone-l"], ["DOUSING", "glowstone-d"],
+        ["OFF", "glowstone-b"], ["LIT", "glowstone-c"]]],
+      ["11" + D + "THE BURIAL SPHERE", [
+        ["UPRIGHT", "sphere-b"], ["SHATTERED", "sphere-e"],
+        ["TENANTED", "sphere-f"], ["REFORGED", "sphere-d"]]],
+      ["13" + D + "THE AUTARCH", [
+        ["INTACT", "autarch"], ["HOLLOWED", "autarch-c"], ["ABLAZE", "autarch-e"]]],
+      ["18" + D + "THE SEAL", [
+        ["SHORT-HANDED", "seal-b"], ["ANSWERED", "seal"]]],
+      ["19" + D + "THE OSSIFIED MYSTIC", [
+        ["GIFTED", "mystic-b"], ["BURNED", "mystic-c"], ["BURNED OUT", "mystic-f"]]],
+      ["20" + D + "THE CHIMNEY", [
+        ["TENANTED", "centipede"], ["VACATED", "chimney-f"],
+        ["BURNT, TENANTED", "chimney-g"], ["BURNT, BARE", "chimney-h"]]],
+      ["23\u201325" + D + "SPAWN OF BRAIN", [
+        ["LISTENER", "spawn-a"], ["MID-STEP", "spawn-b"], ["FELLED", "spawn-c"]]],
+      ["26\u201328" + D + "SPAWN OF GUTS", [
+        ["SWAY", "guts-a"], ["DRIP", "guts-b"], ["CLAIM", "guts-c"], ["LASH", "guts-lash"]]],
+      ["33" + D + "THE ULFIRE LANTERN", [
+        ["LIT", "ulfire"], ["UNLIT", "ulfire-u"]]],
+      ["46\u201353" + D + "HALL OF YOUTH", [
+        ["BY TOUCH", "youth-a"], ["ADORATION", "youth-b"], ["UNDISTURBED", "youth-b-f"],
+        ["LESSON", "youth-c"], ["LEARNED", "youth-d"]]],
+      ["50\u201352" + D + "THE TANK", [
+        ["IN SECTION", "tank"], ["FLOOD", "flood"], ["DECANTED", "tank-f"]]],
+    ];
+    const byKey = {};
+    for (const [name, variants] of GROUPS) {
+      const rows = [];
+      for (const [label, key] of variants) {
+        const secs = [key, key + "-m"]
+          .map((id) => { const el = document.getElementById(id); return el && el.closest("section"); })
+          .filter(Boolean);
+        if (secs.length) rows.push({ label, key, secs });
+      }
+      if (rows.length < 2) continue;
+      const bar = document.createElement("div");
+      bar.className = "picker";
+      bar.setAttribute("role", "group");
+      bar.setAttribute("aria-label", name + " states");
+      const nm = document.createElement("span");
+      nm.className = "pkname";
+      nm.textContent = name;
+      bar.appendChild(nm);
+      const show = (sel) => {
+        for (const r of rows) {
+          for (const sec of r.secs) sec.classList.toggle("pk-off", r !== sel);
+          r.btn.classList.toggle("active", r === sel);
+          r.btn.setAttribute("aria-pressed", String(r === sel));
+        }
+      };
+      for (const r of rows) {
+        const b = document.createElement("button");
+        b.className = "chip-btn";
+        b.textContent = r.label;
+        b.addEventListener("click", () => show(r));
+        r.btn = b;
+        bar.appendChild(b);
+        byKey[r.key] = () => show(r);
+        byKey[r.key + "-m"] = () => show(r);
+      }
+      rows[0].secs[0].parentNode.insertBefore(bar, rows[0].secs[0]);
+      show(rows[0]);
+    }
+    // A jump line into a family picks its variant, then travels there.
+    for (const a of document.querySelectorAll("#jump a")) {
+      const id = (a.getAttribute("href") || "").replace(/^#fig-/, "");
+      const pick = byKey[id];
+      if (!pick) continue;
+      a.addEventListener("click", (e) => {
+        e.preventDefault();
+        pick();
+        const el = document.getElementById(id);
+        const sec = el && el.closest("section");
+        if (sec) sec.scrollIntoView({ block: "start" });
+      });
+    }
   });
 </script>
