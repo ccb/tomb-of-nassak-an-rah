@@ -1322,6 +1322,96 @@ def test_fix_coffin_rehouses_the_king_and_renews_the_prayers():
     assert "PEACEFUL SLUMBER" in " ".join(cap3.texts(Channel.NARRATION))
 
 
+def test_the_autarchs_bones_answer_tongue_flame_and_pocket():
+    """CCB: TASTE / BURN / TAKE on the adrift bones each get an authored
+    answer in the Autarch's register -- never the stock scenery lines."""
+    game = _game()
+    sphere = game.locations["Burial Sphere of Nassak An-Rah"]
+    sphere.set_property("horror_dead", True)
+    tomb._sphere_aftermath(game, ash=True)  # the bones drift free
+    game.relocate(game.player, sphere)
+    cap = _texts(game)
+    game.do_command("taste Autarch's bones")
+    assert "never a flavor" in " ".join(cap.texts(Channel.NARRATION))
+    game.do_command("take bones")
+    game.do_command("burn skeleton")  # refused before any spark is asked for
+    blocked = " ".join(cap.texts(Channel.BLOCKED))
+    assert "keep his orbit" in blocked
+    assert "will not be a campfire" in blocked
+    assert "Autarch's bones" in sphere.items  # still adrift, unburned
+
+
+def test_kick_is_a_blow_where_the_glass_is_ready():
+    """CCB: KICK on any breakable delegates to BREAK whole -- narration,
+    two-room noise, and triggers -- so a booted cylinder, tank, or lattice
+    breaks exactly as a smashed one does."""
+    game = _game()
+    warriors = game.locations["Hall of Warriors"]
+    game.relocate(game.player, warriors)
+    cap = _texts(game)
+    game.do_command("kick viridian cylinder")
+    assert "viridian cylinder" not in warriors.items
+    assert "magnetic boots" in warriors.items  # the kit spilled, break-wise
+    game.do_command("kick cylinders")  # the group scenery names no colour
+    assert "Name a colour" in " ".join(cap.texts(Channel.NARRATION))
+    hounds = game.locations["Hall of Hounds"]
+    game.relocate(game.player, hounds)
+    game.do_command("kick tank")
+    assert "tank" not in hounds.items  # burst; the flood trigger owns the rest
+    memory = game.locations["Hall of Memory"]
+    game.relocate(game.player, memory)
+    game.do_command("kick lattice")
+    assert "memory shard" in memory.items  # the break trigger paid out
+
+
+def test_kick_answers_the_rest_of_the_tomb_in_kind():
+    """The boot's non-breakable targets: authored lines for the props that
+    matter, the pack line for carried things -- and Silas, who files the
+    attempt without wrath (arson is what earns that)."""
+    game = _game()
+    cap = _texts(game)
+    game.do_command("kick merchant")
+    game.do_command("search merchant")
+    game.do_command("take glowstone")
+    game.do_command("kick glowstone")
+    game.do_command("kick wreck")
+    text = " ".join(cap.texts(Channel.NARRATION))
+    assert "no argument with either" in text  # the merchant, authored
+    assert "rides in your pack" in text  # carried things are safe
+    assert "noted nowhere" in text  # the wreck, authored
+    game.do_command("light glowstone")
+    game.relocate(game.player, game.locations["Hall of Memory"])
+    cap2 = _texts(game)
+    game.do_command("kick silas")
+    assert "Misfiled" in " ".join(cap2.texts(Channel.NARRATION))
+    assert not game.characters["Silas"].get_property("wrathful")
+    sphere = game.locations["Burial Sphere of Nassak An-Rah"]
+    sphere.set_property("horror_dead", True)
+    tomb._sphere_aftermath(game, ash=False)
+    game.relocate(game.player, sphere)
+    cap3 = _texts(game)
+    game.do_command("kick bones")  # weightless: the kick moves YOU
+    assert "rest of the way to the wall" in " ".join(cap3.texts(Channel.NARRATION))
+
+
+def test_fire_aimed_at_the_worn_bones_finds_the_horror():
+    """While the Horror lives in the sphere it WEARS the Autarch, so BURN
+    BONES routes to the boss (and its own dousing guidance), not to a
+    nothing-wants-burning shrug."""
+    game = _game()
+    sphere = game.locations["Burial Sphere of Nassak An-Rah"]
+    horror = game.characters["fungal horror"]
+    game.relocate(horror, sphere)
+    game.relocate(game.player, sphere)
+    cyl = game.locations["Hall of Warriors"].items["orange cylinder"]
+    igniter = cyl.contents["plasma-igniter"]
+    cyl.remove_item(igniter)
+    game.player.add_to_inventory(igniter)
+    cap = _texts(game)
+    game.do_command("burn Autarch's bones")  # spark, but no gel dose yet
+    assert "want dousing" in " ".join(cap.texts(Channel.BLOCKED))
+
+
 def test_the_slumber_prayer_wants_a_housed_king():
     game = _game()
     sphere = game.locations["Burial Sphere of Nassak An-Rah"]

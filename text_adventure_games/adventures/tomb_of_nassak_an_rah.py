@@ -789,10 +789,24 @@ class Burn(actions.Action):
             or "mass" in self.command
             or "gel" in self.command
             and self._doused_horror_here()
+            # While it lives here, the Horror WEARS the Autarch -- its coil
+            # moves his limbs -- so fire aimed at the bones is aimed at it.
+            or (
+                self._horror_wears_bones()
+                and any(w in self.command for w in ("bones", "skeleton", "autarch"))
+            )
             or self.command.strip() in ("burn", "ignite", "torch", "set ablaze")
         ):
             return "horror"
         return None
+
+    def _horror_wears_bones(self):
+        horror = self.game.characters.get("fungal horror")
+        return (
+            horror is not None
+            and horror.location is self.player.location
+            and not horror.get_property("is_dead")
+        )
 
     def _doused_horror_here(self):
         horror = self.game.characters.get("fungal horror")
@@ -2182,6 +2196,127 @@ class Feed(actions.Give):
         super().__init__(game, command.replace("feed", "give", 1), actor=actor)
 
 
+class Kick(actions.Action):
+    """KICK, generalized (CCB): the tomb is full of things a scavenger's boot
+    gets aimed at, and each deserves a real answer. A kick at anything
+    BREAKABLE -- a burial cylinder, the hounds' tank, the memory lattice --
+    IS the break: the blow is handed to BREAK whole, so its narration, its
+    two-room noise, and its triggers all fire. The props that matter get
+    authored refusals; the rest get the furniture line. (KICK CENTIPEDE
+    keeps its own action -- the Summit's drop is a different story.)"""
+
+    ACTION_NAME = "kick"
+    ACTION_DESCRIPTION = "Kick something (some glass is one good blow from agreeing)"
+    ACTION_ALIASES = ["punt", "stomp", "stomp on", "kick at"]
+
+    #: Authored answers, by item name, for the props a boot cannot improve.
+    LINES = {
+        "cylinders": "Four of them, and one boot between them. Name a colour.",
+        "statues": (
+            "The boy-Autarch takes the kick the way stone takes everything: "
+            "personally, and without moving."
+        ),
+        "dead merchant": (
+            "He was your merchant. The sand has him now, and your boot has "
+            "no argument with either of them."
+        ),
+        "ossified corpse": (
+            "He has kept this seat for a thousand years, and he does not "
+            "tip. Something about him says only fire will change his mind."
+        ),
+        "wreck": (
+            "The dunes have been kicking the wreck for a season. Your "
+            "contribution is noted nowhere."
+        ),
+        "prayers": (
+            "You kick the prayer-wall. The prayers go on praying; the wall "
+            "has absorbed worse opinions than yours."
+        ),
+        **dict.fromkeys(
+            ("baboon jar", "human jar", "mantis jar", "falcon jar", "jackal jar"),
+            "Your foot stops a hand's width short, all by itself. The seal "
+            "below answers these jars; nothing answers for a kicked one.",
+        ),
+    }
+
+    def __init__(self, game, command, actor=None):
+        super().__init__(game, actor=actor)
+        self.player = self.game.player
+        self.command = command.lower()
+        scope = self.parser.get_items_in_scope(self.player)
+        self.item = self.parser.match_item(self.command, scope, hint="thing to kick")
+        self.target_char = (
+            None
+            if self.item is not None
+            else self.character_in_room(self.command, self.player)
+        )
+
+    def check_preconditions(self) -> bool:
+        if self.item is None and (
+            self.target_char is None or self.target_char is self.player
+        ):
+            self.parser.fail(
+                "Kick what? The tomb offers candidates in every direction, "
+                "and not one of them improved by a boot."
+            )
+            return False
+        return True
+
+    def apply_effects(self):
+        if self.item is not None:
+            it = self.item
+            if it.get_property("is_breakable") or it.get_property(
+                Property.IS_FRAGILE
+            ):
+                # The boot IS the blow: hand the strike to BREAK whole.
+                self.parser.parse_command(f"break {it.name}")
+                return
+            line = self.LINES.get(it.name)
+            if line:
+                self.parser.ok(line)
+                return
+            loc = self.player.location
+            if (
+                loc is not None
+                and loc.name == "Burial Sphere of Nassak An-Rah"
+                and it.name in loc.items
+            ):
+                self.parser.ok(
+                    f"Nothing in this chamber obeys the ground, least of all "
+                    f"you: the kick sends the {it.name} a hand's width, and "
+                    "you the rest of the way to the wall."
+                )
+                return
+            if it.name in self.player.inventory:
+                self.parser.ok(
+                    f"The {it.name} rides in your pack. Kicking it would "
+                    "mean dropping it first, and the day is hard enough."
+                )
+                return
+            self.parser.ok(
+                f"You give the {it.name} a solid kick. It takes the boot "
+                "with the patience of furniture, and returns nothing."
+            )
+            return
+        ch = self.target_char
+        if ch.get_property("is_dead"):
+            self.parser.ok("The dead have finished flinching.")
+            return
+        if ch.name == "Silas":
+            # Rudeness is filed, not avenged (arson is what earns the wrath).
+            self.parser.ok(
+                "Your foot sets out for the archivist, and his hand is "
+                "somehow already there, closing around your ankle like a "
+                "bookmark. He sets the foot back down. 'Misfiled,' he says."
+            )
+            return
+        self.parser.ok(
+            f"You aim a kick at the {ch.name} and think better of it "
+            "mid-swing. If you mean violence, mean it: ATTACK, and not "
+            "with a boot."
+        )
+
+
 class TossCentipede(actions.Action):
     """KICK or THROW the glass centipede off the Summit (CCB): it falls the
     height of the tomb and shatters on the stones at the base, leaving its
@@ -2400,6 +2535,27 @@ def _sphere_aftermath(g, ash):
         bones.add_alias("bones")
         bones.add_alias("skeleton")
         bones.add_alias("autarch")
+        # The three ways a scavenger tests a relic (CCB) -- tongue, flame,
+        # pocket -- each answered in the Autarch's own register, none of
+        # them with the stock line.
+        bones.perceptible_by(
+            perception.Sense.TASTE,
+            "You touch your tongue to the bones of Nassak An-Rah: dust, "
+            "embalming salt, the cold of gold wire. Whatever made him an "
+            "Autarch was never a flavor.",
+        )
+        bones.set_property(
+            "burn_refusal",
+            "The spark is willing; you are not. Everything else down here "
+            "has been fuel or food to something -- the last Autarch of "
+            "Vaarn will not be a campfire too.",
+        )
+        bones.set_property(
+            "take_refusal",
+            "You close a hand around one gold-wired wrist, and stop. You "
+            "have taken a great deal out of this tomb; you will not take "
+            "him. Let the Autarch keep his orbit.",
+        )
         # The card follows the tenancy (CCB): while the Horror lives, the
         # bones read HOLLOWED (13-C); once it is defeated, the same examine
         # deals THE AUTARCH in beatific slumber (13).
@@ -4154,6 +4310,7 @@ def build_game(seed=None):
             SayPrayer,
             TieSilk,
             Refill,
+            Kick,
             TossCentipede,
             Butcher,
             DecantBlood,

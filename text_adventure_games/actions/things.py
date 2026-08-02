@@ -65,6 +65,13 @@ class Get(base.Action):
         # holder (container or surface) that is in the room.
         if self.source_holder is None and not self.at(self.item, self.location):
             return False
+        if not self.item.get_property("gettable"):
+            # An authored refusal outranks the stock line (the burn_refusal
+            # convention): scenery that matters gets to say WHY it stays.
+            refusal = self.item.get_property("take_refusal")
+            if refusal:
+                self.parser.fail(refusal)
+                return False
         if not self.has_property(
             self.item,
             "gettable",
