@@ -295,22 +295,6 @@
        <span class="attach">Selected by terminal.js when the card would render under ~560px.</span></p>
   </section>
 
-  <section id="fig-cyl-bench">
-    <div class="slate"><h2>06 &mdash; THE CYLINDER COMBINATOR</h2><span class="kind">PROOFING BENCH / 16 STATES</span></div>
-    <div class="bench" id="cylbench" role="group" aria-label="Cylinder state switches">
-      <button class="chip-btn" data-cyl="c" data-name="CERULEAN" aria-pressed="false"><i class="sw" style="background:#4db8ff"></i><span>CERULEAN &mdash; SEALED</span></button>
-      <button class="chip-btn" data-cyl="a" data-name="AMBER" aria-pressed="false"><i class="sw" style="background:#ffd06a"></i><span>AMBER &mdash; SEALED</span></button>
-      <button class="chip-btn" data-cyl="v" data-name="VIRIDIAN" aria-pressed="false"><i class="sw" style="background:#4ee0a8"></i><span>VIRIDIAN &mdash; SEALED</span></button>
-      <button class="chip-btn" data-cyl="o" data-name="ORANGE" aria-pressed="false"><i class="sw" style="background:#ff9a3c"></i><span>ORANGE &mdash; SEALED</span></button>
-      <span class="benchkey" id="cylkey"></span>
-    </div>
-    <p class="spec">Four switches, sixteen states: flip any colour to BURST and the matching
-       plate &mdash; and its phone twin &mdash; takes the stage below, while the rest of the
-       family stays off. This is exactly the card the Hall of Warriors deals for that
-       wreckage, so the whole break tree can be proofed without smashing anything.
-       <span class="attach">Bench only; the game picks by room state.</span></p>
-  </section>
-
   <section>
     <div class="slate"><h2>06-B &mdash; THE BURIAL CYLINDERS, INTACT</h2><span class="kind">LITHO / VARIANT</span></div>
     <div class="screen">
@@ -633,28 +617,15 @@
        <span class="attach">Selected by terminal.js when the card would render under ~560px.</span></p>
   </section>
 
-  <section>
-    <div class="slate"><h2>06 &mdash; THE BURIAL CYLINDERS</h2><span class="kind">LITHO / HALL OF WARRIORS</span></div>
-    <div class="screen">
-      <svg id="cylinders" viewBox="0 0 640 400" aria-label="The four burial cylinders"></svg>
+  <section id="fig-cyl-bench">
+    <div class="slate"><h2>06 &mdash; THE CYLINDER COMBINATOR</h2><span class="kind">PROOFING BENCH / 16 STATES</span></div>
+    <div class="bench" id="cylbench" role="group" aria-label="Cylinder state switches">
+      <button class="chip-btn" data-cyl="c" data-name="CERULEAN" aria-pressed="false"><i class="sw" style="background:#4db8ff"></i><span>CERULEAN &mdash; SEALED</span></button>
+      <button class="chip-btn" data-cyl="a" data-name="AMBER" aria-pressed="false"><i class="sw" style="background:#ffd06a"></i><span>AMBER &mdash; SEALED</span></button>
+      <button class="chip-btn" data-cyl="v" data-name="VIRIDIAN" aria-pressed="false"><i class="sw" style="background:#4ee0a8"></i><span>VIRIDIAN &mdash; SEALED</span></button>
+      <button class="chip-btn" data-cyl="o" data-name="ORANGE" aria-pressed="false"><i class="sw" style="background:#ff9a3c"></i><span>ORANGE &mdash; SEALED</span></button>
+      <span class="benchkey" id="cylkey"></span>
     </div>
-    <p class="spec">The factory fallback, mid-scavenge: canon stations (cerulean, amber,
-       viridian, orange), the first two down in their own-coloured spills -- blade and
-       mask claimed -- while the boots still grip their plinth and the igniter waits in
-       the bloom. Callouts cycle the kit, kept and lost alike.
-       <span class="attach">Retired from the hall (every combination now has its own
-       plate, 06-CA and kin); kept as the mold's reference stamping.</span></p>
-  </section>
-
-  <section>
-    <div class="slate"><h2>06-m &mdash; THE BURIAL CYLINDERS (phone)</h2><span class="kind">LITHO / PHONE TWIN</span></div>
-    <div class="screen">
-      <svg id="cylinders-m" viewBox="0 0 640 720" aria-label="The four burial cylinders (phone)"></svg>
-    </div>
-    <p class="spec">The phone-legible twin of 06, stamped from the portrait mold: four
-       stations abreast at 1.6x, cerulean and amber down in their spills, the type re-set
-       big around the row.
-       <span class="attach">Selected by terminal.js when the card would render under ~560px.</span></p>
   </section>
 
   <section>
@@ -2864,30 +2835,12 @@
     });
   }
 
-  /* ---------------- 06: the burial cylinders (factory fallback) ----------------
-     Re-stamped from cylCard (CCB): canon station order and contents, shown
-     mid-scavenge -- cerulean and amber down, boots and igniter still kept. */
-  {
-    const svg = document.getElementById("cylinders");
-    cylCard(svg, "g", ["CERULEAN", "AMBER"],
-      "THE BURIAL CYLINDERS",
-      "KIT OUTLASTS ITS OWNERS.");
-  }
-
-  /* ---------------- 06-m: the burial cylinders (phone twin) ---------------- */
-  {
-    const svg = document.getElementById("cylinders-m");
-    cylCardM(svg, "gm", ["CERULEAN", "AMBER"],
-      "THE BURIAL CYLINDERS",
-      "KIT OUTLASTS ITS OWNERS.", "");
-  }
-
   /* ---- the burial-cylinder factory (CCB): one card per combination of
      broken cylinders. Stations hold canon order -- cerulean, amber,
      viridian, orange -- each drawn sealed (tenant, kit signature, bubbles)
      or burst (stump, hue-tinted spill, shards, slump; the orange one vents
-     spores). 06-C/A/V/O below are the four first-break states; deeper
-     combinations stamp from this same mold when wanted. ---- */
+     spores). all sixteen states -- singles through
+     the cleaned-out hall -- stamp from this one mold below. ---- */
   function cylCard(svg, uid, broken, hdrText, footText) {
     const AMBERH = "#ffd06a", VIRIDIANH = "#4ee0a8";
     el(svg, "rect", { x: 0, y: 0, width: 640, height: 400, fill: BG });
