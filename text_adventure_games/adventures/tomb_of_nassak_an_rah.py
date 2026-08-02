@@ -2201,13 +2201,20 @@ class Kick(actions.Action):
     gets aimed at, and each deserves a real answer. A kick at anything
     BREAKABLE -- a burial cylinder, the hounds' tank, the memory lattice --
     IS the break: the blow is handed to BREAK whole, so its narration, its
-    two-room noise, and its triggers all fire. The props that matter get
-    authored refusals; the rest get the furniture line. (KICK CENTIPEDE
-    keeps its own action -- the Summit's drop is a different story.)"""
+    two-room noise, and its triggers all fire. A kick at anything GETTABLE
+    -- carried or on the ground -- is a boot serving as a THROW: the item
+    leaves for the named direction, or for a random unblocked exit when the
+    player didn't aim, and lands with the same tactical clatter a throw
+    makes. The props that matter get authored refusals; the rest get the
+    furniture line. (KICK CENTIPEDE keeps its own action -- the Summit's
+    drop is a different story.)"""
 
     ACTION_NAME = "kick"
     ACTION_DESCRIPTION = "Kick something (some glass is one good blow from agreeing)"
     ACTION_ALIASES = ["punt", "stomp", "stomp on", "kick at"]
+    #: "kick glowstone south" names the punt's direction, not a movement
+    #: intent -- the parser must not read the trailing "south" as GO.
+    TAKES_DIRECTION = True
 
     #: Authored answers, by item name, for the props a boot cannot improve.
     LINES = {
@@ -2250,6 +2257,17 @@ class Kick(actions.Action):
             if self.item is not None
             else self.character_in_room(self.command, self.player)
         )
+        # Like a THROW, a kick names its direction at the END ("kick glowstone
+        # north"): try the trailing two words, then one, as an exact
+        # direction/exit name.
+        self.direction = None
+        words = self.command.strip().split()
+        for take in (2, 1):
+            if len(words) >= take:
+                cand = " ".join(words[-take:])
+                self.direction = self.parser.get_direction(cand, self.player.location)
+                if self.direction:
+                    break
 
     def check_preconditions(self) -> bool:
         if self.item is None and (
@@ -2265,10 +2283,12 @@ class Kick(actions.Action):
     def apply_effects(self):
         if self.item is not None:
             it = self.item
-            if it.get_property("is_breakable") or it.get_property(
-                Property.IS_FRAGILE
-            ):
+            if (
+                it.get_property("is_breakable") or it.get_property(Property.IS_FRAGILE)
+            ) and not it.get_property("gettable"):
                 # The boot IS the blow: hand the strike to BREAK whole.
+                # (A gettable fragile thing instead takes flight below and
+                # shatters where it lands, exactly as a THROW would send it.)
                 self.parser.parse_command(f"break {it.name}")
                 return
             line = self.LINES.get(it.name)
@@ -2287,11 +2307,11 @@ class Kick(actions.Action):
                     "you the rest of the way to the wall."
                 )
                 return
-            if it.name in self.player.inventory:
-                self.parser.ok(
-                    f"The {it.name} rides in your pack. Kicking it would "
-                    "mean dropping it first, and the day is hard enough."
-                )
+            if it.get_property("gettable") and (
+                it.name in self.player.carried_items()
+                or (loc is not None and it.name in loc.items)
+            ):
+                self._punt(it, loc)
                 return
             self.parser.ok(
                 f"You give the {it.name} a solid kick. It takes the boot "
@@ -2315,6 +2335,63 @@ class Kick(actions.Action):
             "mid-swing. If you mean violence, mean it: ATTACK, and not "
             "with a boot."
         )
+
+    def _punt(self, it, loc):
+        """A boot serving as a THROW: the item leaves for the next room and
+        lands with the same tactical clatter -- a real sound, emitted where
+        it comes to rest, for anything that hunts by ear. The player's named
+        direction wins; an unaimed kick sends it through a random unblocked
+        exit (a named kick, like a named throw, sails through a block -- an
+        archway is no bar to flight)."""
+        if self.player.is_worn(it) or self.player.is_wielded(it):
+            self.parser.fail(f"The {it.name} is in use. Stow it first.")
+            return
+        direction = self.direction
+        if direction is not None and not loc.get_connection(direction):
+            self.parser.fail("There's nothing that way to kick it into.")
+            return
+        if direction is None:
+            open_ways = [d for d in loc.connections if not loc.is_blocked(d)]
+            if not open_ways:
+                # Every way out is shut: the kick spends itself here.
+                if it.name in self.player.carried_items():
+                    self.player.discard_item(it)
+                    loc.add_item(it)
+                self.parser.ok(
+                    f"You kick the {it.name}, but every way out of here is "
+                    "shut; it skitters a lap of the room and comes to rest "
+                    "at your feet."
+                )
+                return
+            direction = _RNG.choice(open_ways)
+        dest = loc.connections[direction]
+        from_pack = it.name in self.player.carried_items()
+        if from_pack:
+            self.player.discard_item(it)
+        else:
+            loc.remove_item(it)
+        boot = (
+            f"You tip the {it.name} out of your pack and punt it"
+            if from_pack
+            else f"You kick the {it.name}"
+        )
+        aim = (
+            f" {direction}"
+            if self.direction
+            else f", and it takes the nearest open way out -- {direction}"
+        )
+        if it.get_property(Property.IS_FRAGILE):
+            self.parser.ok(
+                f"{boot}{aim}; a beat later, the sound of it shattering "
+                f"in {dest.name}."
+            )
+            sound = f"the shatter of a kicked {it.name}"
+        else:
+            dest.add_item(it)
+            self.parser.ok(f"{boot}{aim}; a beat later, a clatter from {dest.name}.")
+            sound = f"the clatter of a kicked {it.name}"
+        # The noise happens where it LANDS -- the tactical point.
+        self.game.emit_sound(dest, 1, sound)
 
 
 class TossCentipede(actions.Action):
@@ -2458,6 +2535,11 @@ class TombGame(games.Game):
     """The adventure's Game. Winning (later) is "got out of the tomb alive with the
     Exotica" -- the ``escaped`` flag a future escape trigger will set. For now it
     is always unwon; Phase 1 is a sandbox to walk."""
+
+    #: Every one of the tomb's dice routes through the module RNG so that
+    #: (seed, journal) replays byte-identical -- engine actions that need a
+    #: draw (an aimless THROW picking an exit) look for it here.
+    rng = _RNG
 
     def is_won(self) -> bool:
         return bool(self.player.get_property("escaped"))
@@ -4675,12 +4757,13 @@ def build_game(seed=None):
     _outdoors = (wreck, exterior, summit)
 
     def _dates_thrown(g):
-        # Thrown OR set down: food on the floor is food on the floor. The
-        # colony answers wherever the dates come to rest -- including one
-        # room over, for a scavenger who throws them through a doorway.
+        # Thrown, kicked, OR set down: food on the floor is food on the
+        # floor. The colony answers wherever the dates come to rest --
+        # including one room over, for a scavenger who sends them through
+        # a doorway by hand or by boot.
         return not youth.get_property("bats_flown") and any(
             e.actor == g.player.name
-            and e.action in ("throw", "drop")
+            and e.action in ("throw", "drop", "kick")
             and "date" in (e.summary or "").lower()
             for e in g.events[g._round_event_start :]
         )

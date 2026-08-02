@@ -1366,18 +1366,16 @@ def test_kick_is_a_blow_where_the_glass_is_ready():
 
 def test_kick_answers_the_rest_of_the_tomb_in_kind():
     """The boot's non-breakable targets: authored lines for the props that
-    matter, the pack line for carried things -- and Silas, who files the
-    attempt without wrath (arson is what earns that)."""
+    matter -- and Silas, who files the attempt without wrath (arson is what
+    earns that)."""
     game = _game()
     cap = _texts(game)
     game.do_command("kick merchant")
     game.do_command("search merchant")
     game.do_command("take glowstone")
-    game.do_command("kick glowstone")
     game.do_command("kick wreck")
     text = " ".join(cap.texts(Channel.NARRATION))
     assert "no argument with either" in text  # the merchant, authored
-    assert "rides in your pack" in text  # carried things are safe
     assert "noted nowhere" in text  # the wreck, authored
     game.do_command("light glowstone")
     game.relocate(game.player, game.locations["Hall of Memory"])
@@ -1392,6 +1390,89 @@ def test_kick_answers_the_rest_of_the_tomb_in_kind():
     cap3 = _texts(game)
     game.do_command("kick bones")  # weightless: the kick moves YOU
     assert "rest of the way to the wall" in " ".join(cap3.texts(Channel.NARRATION))
+
+
+def test_a_kick_at_loose_gear_is_a_throw_by_boot():
+    """A kick at anything gettable -- carried or on the ground -- sends it
+    into the next room with a THROW's semantics: the named direction if the
+    player aimed, else a random unblocked exit, the clatter sounding where
+    it lands."""
+    game = _game()
+    wreck = game.locations["The Caravan Wreck"]
+    exterior = game.locations["Tomb Exterior"]
+    game.do_command("search merchant")
+    game.do_command("take glowstone")
+    # aimed, from the pack: the named way wins (the old pack line is gone)
+    game.relocate(game.player, exterior)
+    cap = _texts(game)
+    game.do_command("kick glowstone south")
+    text = " ".join(cap.texts(Channel.NARRATION))
+    assert "out of your pack and punt it south" in text
+    assert "a clatter from The Caravan Wreck" in text
+    assert "glowstone" in wreck.items
+    assert "glowstone" not in game.player.carried_items()
+    # unaimed, from the ground: a random open exit takes it
+    game.relocate(game.player, wreck)
+    tomb._RNG.seed(0)
+    cap2 = _texts(game)
+    game.do_command("kick glowstone")
+    text2 = " ".join(cap2.texts(Channel.NARRATION))
+    assert "takes the nearest open way out" in text2
+    assert "glowstone" not in wreck.items
+    landed = next(
+        (r for r in wreck.connections.values() if "glowstone" in r.items), None
+    )
+    assert landed is not None
+    # a named way that doesn't exist is refused, and nothing moves
+    glow = landed.items["glowstone"]
+    landed.remove_item(glow)
+    game.player.add_to_inventory(glow)
+    cap3 = _texts(game)
+    game.do_command("kick glowstone down")
+    assert "nothing that way to kick" in " ".join(cap3.texts(Channel.BLOCKED))
+    assert "glowstone" in game.player.carried_items()
+
+
+def test_an_unaimed_kick_never_beats_the_crystal_seal():
+    """The unaimed kick draws only from UNBLOCKED exits: in the Canopic hall
+    with the seal intact, the glowstone can land down either stairway but
+    never up in the Burial Sphere."""
+    game = _game()
+    game.do_command("search merchant")
+    game.do_command("take glowstone")
+    game.do_command("light glowstone")
+    canopic = game.locations["Hall of the Canopic Jars"]
+    sphere = game.locations["Burial Sphere of Nassak An-Rah"]
+    stairways = [game.locations["Hall of Memory"], game.locations["Hall of Hounds"]]
+    game.relocate(game.player, canopic)
+    game.do_command("drop glowstone")
+    seen = set()
+    for seed in range(8):
+        tomb._RNG.seed(seed)
+        game.do_command("kick glowstone")
+        assert "glowstone" not in sphere.items  # the seal turned it away
+        landed = next(r for r in stairways if "glowstone" in r.items)
+        seen.add(landed.name)
+        glow = landed.items["glowstone"]
+        landed.remove_item(glow)
+        canopic.add_item(glow)
+    assert len(seen) == 2  # both stairways drawn across seeds
+
+
+def test_a_throw_without_aim_takes_a_random_open_exit():
+    """THROW with no direction and no target no longer refuses: the item
+    sails through a random unblocked exit and clatters where it lands."""
+    game = _game()
+    game.do_command("search merchant")
+    game.do_command("take glowstone")
+    wreck = game.locations["The Caravan Wreck"]
+    tomb._RNG.seed(0)
+    cap = _texts(game)
+    game.do_command("throw glowstone")
+    text = " ".join(cap.texts(Channel.NARRATION))
+    assert "at nothing in particular" in text
+    assert "glowstone" not in game.player.carried_items()
+    assert any("glowstone" in r.items for r in wreck.connections.values())
 
 
 def test_fire_aimed_at_the_worn_bones_finds_the_horror():

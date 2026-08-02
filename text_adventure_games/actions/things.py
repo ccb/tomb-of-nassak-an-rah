@@ -1,3 +1,5 @@
+import random
+
 from . import base
 from .consume import Drink, Eat
 from .rose import Smell_Rose
@@ -590,6 +592,7 @@ class Throw(base.Action):
         # rock right stairs"): try the trailing two words, then one, as an
         # exact direction/exit name.
         self.direction = None
+        self.aimless = False  # no direction named: luck picks an open exit
         if self.target is None:
             words = command.lower().strip().split()
             for take in (2, 1):
@@ -602,6 +605,24 @@ class Throw(base.Action):
             command, self.character.carried_items(), hint="thing to throw"
         )
 
+    def _offhand_direction(self):
+        """No direction named: the item goes where luck sends it -- a random
+        UNBLOCKED exit. (A named throw sails through a block, an archway being
+        no bar to flight; an aimless one doesn't get that benefit of the
+        doubt.) None if every way out is shut."""
+        if self.location is None:
+            return None
+        open_ways = [
+            d for d in self.location.connections if not self.location.is_blocked(d)
+        ]
+        if not open_ways:
+            return None
+        # Games that keep a seeded RNG (for journal replay) hang it on
+        # ``game.rng``; otherwise fall back to the module RNG.
+        rng = getattr(self.game, "rng", None) or random
+        self.aimless = True
+        return rng.choice(open_ways)
+
     def check_preconditions(self) -> bool:
         if not self.was_matched(self.item, "I don't see it."):
             return False
@@ -611,6 +632,10 @@ class Throw(base.Action):
         if self.target is not None:
             return True
         if self.direction is None:
+            self.direction = self._offhand_direction()
+        if self.direction is None:
+            # Nowhere open for luck to pick; the player can still NAME a
+            # way (a named throw ignores blocks) or a target.
             self.parser.fail("Throw it which way -- or at whom?")
             return False
         if not self.location or not self.location.get_connection(self.direction):
@@ -641,18 +666,21 @@ class Throw(base.Action):
             )
             return
         dest = self.location.connections[self.direction]
+        launch = (
+            f"You throw the {self.item.name} at nothing in particular; "
+            f"it sails {self.direction}"
+            if self.aimless
+            else f"You throw the {self.item.name} {self.direction}"
+        )
         if self.item.get_property(Property.IS_FRAGILE):
             description = (
-                f"You throw the {self.item.name} {self.direction}; a beat "
-                f"later, the sound of it shattering in {dest.name}."
+                f"{launch}; a beat later, the sound of it shattering "
+                f"in {dest.name}."
             )
             sound = f"the shatter of a thrown {self.item.name}"
         else:
             dest.add_item(self.item)
-            description = (
-                f"You throw the {self.item.name} {self.direction}; a beat "
-                f"later, a clatter from {dest.name}."
-            )
+            description = f"{launch}; a beat later, a clatter from {dest.name}."
             sound = f"the clatter of a thrown {self.item.name}"
         self.parser.ok(description)
         # The noise happens where it LANDS -- the tactical point.

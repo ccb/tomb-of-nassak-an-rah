@@ -257,6 +257,14 @@ class Parser:
             # A throw names a direction ("throw purse north") or a target; the
             # direction is the throw's argument, not a movement intent.
             return "throw"
+        elif directional := self._directional_verb(command):
+            # Same principle, for any registered action that declares
+            # ``TAKES_DIRECTION`` (a game's KICK): its trailing direction is
+            # an argument ("kick glowstone south"), so the verb must win here
+            # -- before the direction check below reads the command as
+            # movement (a direction word is also a Go alias, and would beat
+            # a shorter verb in the longest-match fallback).
+            return directional
         elif command.startswith("adopt goal"):
             # Goal-management verbs are matched explicitly: "drop goal ..." must
             # win over the inventory "drop" verb below, and both must beat the
@@ -365,6 +373,24 @@ class Parser:
                         if len(phrase) > best_len:
                             best_name, best_len = action.action_name(), len(phrase)
             return best_name
+
+    def _directional_verb(self, command):
+        """The name of the registered action whose name or single-word alias
+        LEADS *command* and which declares ``TAKES_DIRECTION = True`` -- a verb
+        (like the built-in throw) whose trailing direction is an argument, not
+        a movement intent. ``None`` otherwise."""
+        first = command.split(" ", 1)[0]
+        for _, action in self.actions.items():
+            if not getattr(action, "TAKES_DIRECTION", False):
+                continue
+            phrases = [str(action.action_name())] + [
+                str(p)
+                for p in (getattr(action, "ACTION_ALIASES", []) or [])
+                if " " not in str(p)
+            ]
+            if first in phrases:
+                return action.action_name()
+        return None
 
     def _match_specific_action(self, command):
         """The longest registered ACTION_NAME / ACTION_ALIAS that is MULTI-WORD
