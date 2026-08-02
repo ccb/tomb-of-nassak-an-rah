@@ -14851,23 +14851,34 @@
         if (down.has(l)) down.delete(l); else down.add(l);
         apply();
       });
-    // A jump line into the family sets the switches to match, then travels.
-    for (const a of document.querySelectorAll("#jump a")) {
-      const id = (a.getAttribute("href") || "").replace(/^#fig-/, "");
+    // The jump index carries ONE line for the whole family (CCB): with the
+    // bench able to stage any state, thirty-two per-state lines were only
+    // clutter. The line travels to whichever pair is on stage.
+    const isFamily = (id) => {
       const base = id.replace(/-m$/, "");
-      let letters = null;
-      if (base === "cylinders-b") letters = "";
-      else if (/^cyl-[cavo]{1,4}$/.test(base)) letters = base.slice(4);
-      if (letters === null) continue;
-      a.addEventListener("click", (e) => {
+      return base === "cylinders-b" || /^cyl-[cavo]{1,4}$/.test(base);
+    };
+    const lines = [...document.querySelectorAll("#jump a")].filter((a) =>
+      isFamily((a.getAttribute("href") || "").replace(/^#fig-/, "")));
+    if (lines.length) {
+      const g = document.createElement("a");
+      g.href = "#fig-cylinders-b";
+      g.textContent = "06 \u2014 THE BURIAL CYLINDERS (16 STATES)";
+      g.addEventListener("click", (e) => {
         e.preventDefault();
-        down.clear();
-        for (const l of letters) down.add(l);
-        apply();
-        const el = document.getElementById(id);
-        const sec = el && el.closest("section");
-        if (sec) sec.scrollIntoView({ block: "start" });
+        const letters = ORDER.filter((l) => down.has(l)).join("");
+        for (const id of [keyOf(letters), keyOf(letters) + "-m"]) {
+          const el = document.getElementById(id);
+          const sec = el && el.closest("section");
+          if (sec && getComputedStyle(sec).display !== "none") {
+            sec.scrollIntoView({ block: "start" });
+            return;
+          }
+        }
+        document.getElementById("fig-cyl-bench").scrollIntoView({ block: "start" });
       });
+      lines[0].parentNode.insertBefore(g, lines[0]);
+      for (const a of lines) a.remove();
     }
     apply();
   });
@@ -14875,9 +14886,9 @@
   // The variant pickers (CCB): families whose cards are one subject in
   // different states get a row of buttons above the group that stages one
   // variant (and its phone twin) at a time, cylinder-bench-wise, instead of
-  // a run of near-identical cards. Jump-index lines still reach every card:
-  // one into a family selects that variant on the way. Page-only plumbing;
-  // in the game each state is dealt by its own trigger or figure property.
+  // a run of near-identical cards. Each family folds to a single jump-index
+  // line that travels to its picker. Page-only plumbing; in the game each
+  // state is dealt by its own trigger or figure property.
   addEventListener("DOMContentLoaded", () => {
     const D = " \u2014 ";
     const GROUPS = [
@@ -14908,7 +14919,6 @@
       ["50\u201352" + D + "THE TANK", [
         ["IN SECTION", "tank"], ["FLOOD", "flood"], ["DECANTED", "tank-f"]]],
     ];
-    const byKey = {};
     for (const [name, variants] of GROUPS) {
       const rows = [];
       for (const [label, key] of variants) {
@@ -14940,24 +14950,26 @@
         b.addEventListener("click", () => show(r));
         r.btn = b;
         bar.appendChild(b);
-        byKey[r.key] = () => show(r);
-        byKey[r.key + "-m"] = () => show(r);
       }
       rows[0].secs[0].parentNode.insertBefore(bar, rows[0].secs[0]);
       show(rows[0]);
-    }
-    // A jump line into a family picks its variant, then travels there.
-    for (const a of document.querySelectorAll("#jump a")) {
-      const id = (a.getAttribute("href") || "").replace(/^#fig-/, "");
-      const pick = byKey[id];
-      if (!pick) continue;
-      a.addEventListener("click", (e) => {
-        e.preventDefault();
-        pick();
-        const el = document.getElementById(id);
-        const sec = el && el.closest("section");
-        if (sec) sec.scrollIntoView({ block: "start" });
-      });
+      // ...and the family folds to one jump-index line, landing on the
+      // picker (the buttons stage any state from there).
+      const ids = new Set();
+      for (const r of rows) { ids.add(r.key); ids.add(r.key + "-m"); }
+      const lines = [...document.querySelectorAll("#jump a")].filter((a) =>
+        ids.has((a.getAttribute("href") || "").replace(/^#fig-/, "")));
+      if (lines.length) {
+        const g = document.createElement("a");
+        g.href = "#fig-" + rows[0].key;
+        g.textContent = name + " (" + rows.length + " STATES)";
+        g.addEventListener("click", (e) => {
+          e.preventDefault();
+          bar.scrollIntoView({ block: "start" });
+        });
+        lines[0].parentNode.insertBefore(g, lines[0]);
+        for (const a of lines) a.remove();
+      }
     }
   });
 </script>
