@@ -1475,6 +1475,117 @@ def test_a_throw_without_aim_takes_a_random_open_exit():
     assert any("glowstone" in r.items for r in wreck.connections.values())
 
 
+def _arm(game, *names):
+    """Move the named weapons from wherever they rest into the player's pack."""
+    for name in names:
+        for room in game.locations.values():
+            holder = room if name in room.items else next(
+                (
+                    it
+                    for it in room.items.values()
+                    if name in getattr(it, "contents", {})
+                ),
+                None,
+            )
+            if holder is not None:
+                item = (holder.items if holder is room else holder.contents)[name]
+                holder.remove_item(item)
+                game.player.add_to_inventory(item)
+                break
+
+
+def test_a_wielded_weapon_still_counts_as_armed():
+    """Engine fix: Character.wield moves the item OUT of inventory, so the
+    stock Attack called a wielding attacker unarmed. The natural sequence --
+    wield blade, attack -- must work, named or not."""
+    game = _game()
+    _arm(game, "prismatic blade")
+    w = game.locations["Hall of Warriors"]
+    guts = game.characters["spawn of guts"]
+    game.relocate(game.player, w)
+    game.relocate(guts, w)
+    game.do_command("wield blade")
+    game.do_command("attack spawn of guts with blade")
+    assert guts.get_property("is_unconscious")
+
+
+def test_attack_arms_itself_or_asks_or_answers_bare_handed():
+    """ATTACK, tomb-tempered: an unnamed weapon is improvised (the only one
+    carried), a genuinely ambiguous armoury asks, and truly empty hands get
+    the authored unarmed answer -- with its cost -- not the stock refusal."""
+    game = _game()
+    w = game.locations["Hall of Warriors"]
+    guts = game.characters["spawn of guts"]
+    game.relocate(game.player, w)
+    game.relocate(guts, w)
+    cap = _texts(game)
+    tomb._RNG.seed(1)
+    game.do_command("attack spawn of guts")  # empty hands
+    text = " ".join(cap.texts(Channel.NARRATION))
+    assert "chemistry, not violence" in text
+    assert any(x.name == "Caustic Knuckles" for x in game.player.wounds)
+    assert not guts.get_property("is_unconscious")  # fists deal no vigor
+    _arm(game, "prismatic blade", "synth-hunting dagger")
+    cap2 = _texts(game)
+    game.do_command("hit spawn of guts")  # two weapons, none named
+    assert "name your edge" in " ".join(cap2.texts(Channel.BLOCKED))
+    assert not guts.get_property("is_unconscious")
+    game.player.remove_from_inventory(
+        game.player.inventory["synth-hunting dagger"]
+    )
+    game.do_command("fight spawn of guts")  # one weapon: it serves
+    assert guts.get_property("is_unconscious")
+
+
+def test_a_punch_is_answered_in_the_targets_register():
+    """Bare knuckles against the tomb's fauna: every answer authored, none of
+    them vigor damage -- and the one friendly face gets to be better at
+    ducking than you are at hitting."""
+    game = _game()
+    cap = _texts(game)
+    game.do_command("punch")  # nothing named
+    assert "Punch what?" in " ".join(cap.texts(Channel.BLOCKED))
+    game.do_command("punch wreck")  # an item: steered to boot and tool
+    assert "KICK it, or BREAK it" in " ".join(cap.texts(Channel.NARRATION))
+    game.do_command("punch critch")
+    assert "do that to you for free" in " ".join(cap.texts(Channel.NARRATION))
+    h = game.locations["Hall of Hounds"]
+    jack = game.characters["jackal pack"]
+    horror = game.characters["fungal horror"]
+    game.relocate(game.player, h)
+    game.relocate(jack, h)
+    game.relocate(horror, h)
+    cap2 = _texts(game)
+    game.do_command("punch jackals")
+    game.do_command("punch horror")
+    text = " ".join(cap2.texts(Channel.NARRATION))
+    assert "lender takes collateral" in text
+    assert int(jack.get_property("vigor")) == 3  # no ground given
+    assert "to the wrist" in text
+    assert int(horror.get_property("vigor")) == 5
+    silas = game.characters["Silas"]
+    game.relocate(game.player, silas.location)
+    cap3 = _texts(game)
+    game.do_command("punch silas")
+    assert "librarian's care" in " ".join(cap3.texts(Channel.NARRATION))
+    assert not silas.get_property("wrathful")  # filed, not avenged
+
+
+def test_a_bare_fist_answers_the_centipede_at_a_price():
+    """'One solid blow answers it' -- a fist qualifies, and pays the venom
+    toll every bare-skin dealing with live glass pays."""
+    game = _game()
+    cent = game.characters["glass centipede"]
+    game.relocate(game.player, cent.location)
+    cap = _texts(game)
+    game.do_command("punch centipede")
+    assert cent.get_property("is_unconscious")
+    assert any(x.name == "Centipede Venom" for x in game.player.wounds)
+    assert "going in cold" in " ".join(cap.texts(Channel.NARRATION))
+    game.do_command("punch centipede")  # past flinching now
+    assert "finished flinching" in " ".join(cap.texts(Channel.NARRATION))
+
+
 def test_fire_aimed_at_the_worn_bones_finds_the_horror():
     """While the Horror lives in the sphere it WEARS the Autarch, so BURN
     BONES routes to the boss (and its own dousing guidance), not to a

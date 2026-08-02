@@ -21,9 +21,15 @@ class Attack(base.Action):
             position="after",
             exclude=self.attacker,
         )
-        self.weapon = self.parser.match_item(
-            command, self.attacker.inventory, hint="weapon"
-        )
+        # A weapon serves from the hand as well as the pack: wielding moves
+        # an item OUT of inventory (Character.wield), so matching against
+        # inventory alone made "wield blade; attack troll with blade" claim
+        # the attacker was unarmed.
+        held = {
+            **self.attacker.inventory,
+            **getattr(self.attacker, "wielded", {}),
+        }
+        self.weapon = self.parser.match_item(command, held, hint="weapon")
 
     def check_preconditions(self) -> bool:
         """
@@ -55,7 +61,10 @@ class Attack(base.Action):
             ),
         ):
             return False
-        if not self.attacker.is_in_inventory(self.weapon):
+        if not (
+            self.attacker.is_in_inventory(self.weapon)
+            or self.attacker.is_wielded(self.weapon)
+        ):
             description = "{name} {verb} have the {weapon}.".format(
                 name=self.attacker.name.capitalize(),
                 verb=base.conjugate(self.attacker, "don't", "doesn't"),
@@ -100,7 +109,11 @@ class Attack(base.Action):
 
         if self.weapon.get_property(Property.IS_FRAGILE):
             description = "The fragile weapon broke into pieces."
-            self.attacker.remove_from_inventory(self.weapon)
+            if self.attacker.is_wielded(self.weapon):
+                self.attacker.wielded.pop(self.weapon.name)
+                self.weapon.set_owner(None)
+            else:
+                self.attacker.remove_from_inventory(self.weapon)
             self.parser.ok(description)
 
         if self.victim.get_property(Property.IS_INVULNERABLE):

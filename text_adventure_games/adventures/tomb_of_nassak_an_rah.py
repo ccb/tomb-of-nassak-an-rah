@@ -2504,6 +2504,220 @@ class TossCentipede(actions.Action):
         exterior.add_item(shard)
 
 
+def _unarmed_answer(g, ch):
+    """One bare-handed blow, answered in the target's own register (CCB).
+    Fists deal no vigor damage in this tomb -- the fauna is grave-cured acid,
+    psychic brine, animate fungus, and synthetic patience, and bare knuckles
+    are a category error. Where the fiction demands it, the punch ITSELF is
+    the wound (the guts spawn's cure is acid; you pressed skin into it). The
+    one genuine use is the centipede -- 'one solid blow answers it' -- and a
+    fist qualifies, paid for in venom like every bare-skin dealing with live
+    glass. Consequences over refusals, but never a free kill."""
+    if ch.get_property("is_dead") or ch.get_property("is_unconscious"):
+        g.parser.ok("The dead have finished flinching.")
+        return
+    name = ch.name
+    if name == "spawn of guts":
+        fatal = _wound_player(
+            g,
+            "Caustic Knuckles",
+            1,
+            (
+                "Skin stays behind where the fist landed: the cure is acid, "
+                "and you pressed your hand into it.",
+                "The acid keeps what it is owed -- knuckle-skin, mostly.",
+            ),
+        )
+        if fatal:
+            _die(g, "The spawn folds you into itself, patiently. THE END.")
+        else:
+            g.parser.ok(
+                "Punching grave-cured muscle is chemistry, not violence: "
+                "the spawn barely sways, and your hand comes back wrong."
+            )
+        return
+    if name == "spawn of brain":
+        g.parser.ok(
+            "Your knuckles ring on the jar, once. The brine does not "
+            "ripple. Something inside picks up the thought of you, turns "
+            "it over, and sets it back down. You feel handled."
+        )
+        return
+    if name == "fungal horror":
+        g.parser.ok(
+            "Your fist goes into the orange mass to the wrist, and the "
+            "mass does not mind. Getting the hand back takes longer than "
+            "the punch did. Where you cut it, it remembers; fire is the "
+            "only argument it respects."
+        )
+        return
+    if name == "jackal pack":
+        g.parser.ok(
+            "You swing; the nearest jackal is simply elsewhere, and the "
+            "one behind it takes your wrist in its mouth -- gently, the "
+            "way a lender takes collateral -- and lets go. The sums in "
+            "their eyes do not change."
+        )
+        return
+    if name == "glass centipede":
+        # 'One solid blow answers it', and a bare fist qualifies -- at the
+        # toll every bare-skin dealing with live glass pays (the same venom
+        # THROW CENTIPEDE costs at the Summit).
+        ch.set_property(Property.IS_UNCONSCIOUS, True)
+        g.parser.ok(
+            "You put a bare fist through four feet of ambush. One solid "
+            "blow: the centipede cracks along its length and goes still "
+            "-- and hits you once across the knuckles on the way down, a "
+            "parting gift, going in cold."
+        )
+        fatal = _wound_player(
+            g,
+            "Centipede Venom",
+            1,
+            ("A cold ache spreading up the arm from the split knuckles.",),
+        )
+        if fatal:
+            _die(g, "The venom finishes its work in the dark. THE END.")
+        return
+    if name == "Silas":
+        # Rudeness is filed, not avenged (arson is what earns the wrath).
+        g.parser.ok(
+            "Silas's hand arrives before your fist does, closing around "
+            "it with a librarian's care, and returns it to your side. "
+            "'Misfiled,' he says."
+        )
+        return
+    if name == "Critch":
+        # The one friendly face down here does not get a steer toward
+        # ATTACK -- he gets to be better at ducking than you are at hitting.
+        g.parser.ok(
+            "Critch leans out of the swing without hurry, the way a man "
+            "steps out of weather he has seen before. 'The tomb will do "
+            "that to you for free,' he says, without judgement."
+        )
+        return
+    g.parser.ok(
+        f"You square up to the {name} bare-handed, and the tomb declines "
+        "the wager on your behalf. If you mean violence, find an edge "
+        "first: ATTACK, with a weapon."
+    )
+
+
+class Punch(actions.Action):
+    """PUNCH -- violence with what's on the end of your arm (CCB). Always
+    the bare-handed answer, even when a blade rides in your pack: the player
+    asked for fists. ATTACK / HIT with genuinely empty hands arrives at the
+    same answers (ArmedAttack below); attack with a weapon stays the
+    engine's combat."""
+
+    ACTION_NAME = "punch"
+    ACTION_DESCRIPTION = "Punch something with a bare fist"
+    ACTION_ALIASES = ["punch at", "sock", "pummel"]
+
+    def __init__(self, game, command, actor=None):
+        super().__init__(game, actor=actor)
+        self.player = self.game.player
+        self.command = command.lower()
+        self.target_char = self.character_in_room(self.command, self.player)
+        self.item = None
+        if self.target_char is None or self.target_char is self.player:
+            self.target_char = None
+            scope = self.parser.get_items_in_scope(self.player)
+            self.item = self.parser.match_item(
+                self.command, scope, hint="thing to punch"
+            )
+
+    def check_preconditions(self) -> bool:
+        if self.target_char is None and self.item is None:
+            self.parser.fail(
+                "Punch what? Nothing down here is improved by knuckles, "
+                "least of all yours."
+            )
+            return False
+        return True
+
+    def apply_effects(self):
+        if self.target_char is not None:
+            _unarmed_answer(self.game, self.target_char)
+            return
+        self.parser.ok(
+            f"You unclench the fist a hand's width from the "
+            f"{self.item.name}. The tomb's furnishings win these "
+            "exchanges; if something must break, lead with a boot or a "
+            "tool -- KICK it, or BREAK it."
+        )
+
+
+class ArmedAttack(actions.Attack):
+    """ATTACK, tomb-tempered (CCB). Three fixes over the engine's stock
+    combat: (1) "attack spawn" with a blade in hand or pack no longer claims
+    you are unarmed -- the wielded weapon serves first, else the only weapon
+    carried, and only a genuinely ambiguous armoury asks you to name the
+    edge; (2) FIGHT works as an alias; (3) attacking with truly empty hands
+    routes to the authored unarmed answers instead of the stock "You don't
+    have a weapon." Naming a weapon you don't hold, and every NPC attacker,
+    keeps the engine's rules."""
+
+    ACTION_NAME = "attack"  # replaces the built-in in the parser registry
+    ACTION_DESCRIPTION = "Attack someone with a weapon"
+    ACTION_ALIASES = ["hit", "fight"]
+
+    def __init__(self, game, command, actor=None):
+        super().__init__(game, command, actor=actor)
+        self.unarmed = False
+        # Only an attack that NAMED no weapon may improvise one (or fall to
+        # fists); "attack X with blade" after losing the blade should still
+        # hear that you don't have it.
+        self._named_weapon = " with " in command.lower()
+        self._armoury = []
+        if self.weapon is None and not self._named_weapon and self.attacker:
+            wielded = [
+                it
+                for it in getattr(self.attacker, "wielded", {}).values()
+                if it.get_property(Property.IS_WEAPON)
+            ]
+            carried = [
+                it
+                for it in self.attacker.inventory.values()
+                if it.get_property(Property.IS_WEAPON)
+            ]
+            if wielded:
+                self.weapon = wielded[0]  # the point of wielding
+            elif len(carried) == 1:
+                self.weapon = carried[0]
+            else:
+                self._armoury = carried  # empty (fists) or ambiguous (ask)
+
+    def check_preconditions(self) -> bool:
+        if (
+            self.weapon is None
+            and not self._named_weapon
+            and self.attacker is self.game.player
+        ):
+            if not self.was_matched(
+                self.victim, "The character to attack wasn't matched."
+            ):
+                return False
+            if not self.attacker.location.here(self.victim):
+                self.parser.fail(
+                    "The two characters must be in the same location."
+                )
+                return False
+            if self._armoury:
+                names = " and the ".join(it.name for it in self._armoury)
+                self.parser.fail(f"With what? You carry the {names} -- name your edge.")
+                return False
+            self.unarmed = True  # empty hands: the authored answers below
+            return True
+        return super().check_preconditions()
+
+    def apply_effects(self):
+        if self.unarmed:
+            _unarmed_answer(self.game, self.victim)
+            return
+        super().apply_effects()
+
+
 class CrystalSeal(blocks.Block):
     """The red-crystal seal on the stair between the Canopic hall and the
     Burial Sphere. A physical seal bars a stair from BOTH ends (CCB fix: it
@@ -4393,6 +4607,8 @@ def build_game(seed=None):
             TieSilk,
             Refill,
             Kick,
+            Punch,
+            ArmedAttack,  # replaces the built-in attack (fists, auto-arm)
             TossCentipede,
             Butcher,
             DecantBlood,
